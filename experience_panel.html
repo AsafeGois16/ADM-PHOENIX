@@ -1,0 +1,29 @@
+<section id="experienceView" class="pxe" hidden aria-labelledby="pxeTitle">
+  <header class="pxe-hero">
+    <div><span class="pxe-kicker">PHOENIX INTELLIGENCE / EXPERIENCE</span><h2 id="pxeTitle">Eventos &amp; Ativações</h2><p>Gerencie participantes, resultados da roleta, elegibilidade e controle de entrega sem misturar os cadastros de outras campanhas.</p></div>
+    <div class="pxe-status"><span class="pxe-dot"></span> Sincronização automática</div>
+  </header>
+  <div class="pxe-events"><span class="pxe-event-chip">HBR · Giro da Sorte · 2026</span><span class="pxe-event-chip pxe-event-soon" title="Disponível após criar novas campanhas no banco">+ Próximas campanhas</span></div>
+  <div class="pxe-stats" aria-label="Indicadores do evento HBR">
+    <div class="pxe-stat"><span class="pxe-stat-label">Participantes</span><strong class="pxe-stat-value" id="pxeTotal">—</strong><span class="pxe-stat-sub">Cadastros recebidos</span></div>
+    <div class="pxe-stat"><span class="pxe-stat-label">Elegíveis</span><strong class="pxe-stat-value" id="pxeEligible">—</strong><span class="pxe-stat-sub">Validados automaticamente</span></div>
+    <div class="pxe-stat"><span class="pxe-stat-label">Brindes físicos</span><strong class="pxe-stat-value" id="pxePrizes">—</strong><span class="pxe-stat-sub">Copo · Caneta · Agenda</span></div>
+    <div class="pxe-stat"><span class="pxe-stat-label">Prêmios registrados</span><strong class="pxe-stat-value" id="pxeDelivered">—</strong><span class="pxe-stat-sub">Entrega ou encaminhamento</span></div>
+  </div>
+  <div class="pxe-sections">
+    <div class="pxe-box"><h3>Resultados da roleta</h3><p>Distribuição dos sete resultados declarados pelos participantes.</p><div id="pxeChart" aria-label="Quantidade por resultado da roleta"><div class="pxe-empty">Aguardando cadastros.</div></div></div>
+    <div class="pxe-box"><h3>Controle e elegibilidade</h3><p>Atualizado com base no status de cada inscrição.</p><div class="pxe-status-grid"><div class="pxe-status-pill"><strong id="pxeValid">—</strong>Validados</div><div class="pxe-status-pill"><strong id="pxePending">—</strong>Pendentes</div><div class="pxe-status-pill"><strong id="pxeRejected">—</strong>Rejeitados</div><div class="pxe-status-pill"><strong id="pxeOffers">—</strong>Autorizaram contato</div></div></div>
+  </div>
+  <div class="pxe-alert"><strong>Sorteio final:</strong> esta tela prepara e exporta a relação de participantes elegíveis; não executa o sorteio nem congela a lista no servidor. A apuração exige regulamento e eventual autorização aplicável. A confirmação de cadastro não garante titularidade do telefone/e-mail.</div>
+  <div class="pxe-tools">
+    <input id="pxeSearch" type="search" placeholder="Pesquisar participante, telefone, e-mail ou código" aria-label="Pesquisar participantes">
+    <select id="pxeResultFilter" aria-label="Filtrar prêmio"><option value="">Todos os resultados</option></select>
+    <select id="pxeStatusFilter" aria-label="Filtrar elegibilidade"><option value="">Todos os status</option><option value="validado">Validado</option><option value="pendente">Pendente</option><option value="rejeitado">Rejeitado</option></select>
+    <button class="pxe-btn pxe-btn-soft" type="button" id="pxeRefresh">↻ Atualizar</button>
+    <button class="pxe-btn" type="button" id="pxeExport">↓ Exportar CSV</button>
+    <button class="pxe-btn pxe-btn-amber" type="button" id="pxeEligibleExport">↓ Lista de elegíveis</button>
+  </div>
+  <div class="pxe-table-outer"><table class="pxe-table"><thead><tr><th>Participante / código</th><th>Contato</th><th>Interesse</th><th>Resultado</th><th>Elegibilidade</th><th>Premiação</th><th>Cadastro</th><th>Ações</th></tr></thead><tbody id="pxeRows"><tr><td class="pxe-empty" colspan="8">Clique em Phoenix Experience para carregar os participantes.</td></tr></tbody></table></div>
+  <div class="pxe-message" id="pxeMessage" role="status" aria-live="polite"></div>
+  <p class="pxe-footnote">Os registros e validações vêm do Supabase da Phoenix. A entrega de brinde ou encaminhamento do desconto fica registrada no campo de observações do participante; essa versão não inclui auditoria independente de entregas. Atualização enquanto esta aba estiver aberta: a cada 15 segundos.</p>
+</section>
