@@ -1153,6 +1153,14 @@ body.phx-project-mode .dashboard>.container{max-width:1440px}
 @media(max-width:720px){.phx10-hero{flex-direction:column;align-items:start;padding:22px}.phx10-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.phx10-fields{grid-template-columns:1fr}.phx10-ficha-buttons{flex-direction:column}.phx10-table{min-width:850px}.phx10-toolbar{flex-direction:column;align-items:stretch}.phx10-field,.phx10-field.wide{width:100%}}
 
 </style>
+
+<style id="phx-do-ficha-v104">
+.phx10-ficha:not(.rosa) .phx-do-subhead{margin:18px 0 9px;padding:10px 0 0;border-top:1px solid #dce7f3;color:#143e68;font-size:.72rem;letter-spacing:.09em}
+.phx10-ficha:not(.rosa) .phx-do-fields .phx10-pair{background:linear-gradient(165deg,#fff,#fbfdff);border:1px solid #dae5f0;border-radius:11px;padding:12px}
+.phx10-ficha:not(.rosa) .phx-do-fields .phx10-pair small{font-size:.67rem;color:#66819e}
+.phx10-ficha:not(.rosa) .phx-do-fields .phx10-pair b{font-size:.79rem;color:#173f69}
+.phx-do-note{color:#698098;font-size:.68rem;line-height:1.65;margin:12px 1px 3px}
+</style>
 </head>
 <body>
 <!-- Tela de Login -->
@@ -3561,8 +3569,14 @@ body.phx-project-mode .dashboard>.container{max-width:1440px}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();
 </script>
+<style id="phx-rosa-ficha-patch">
+.phx10-rosa-chart{max-width:490px;margin:18px auto 20px;border:1px solid #f0d6df;border-radius:18px;background:#fff9fa;padding:17px;text-align:center}
+.phx10-rosa-chart svg{width:100%;height:auto;max-width:390px;display:block;margin:auto}
+.phx10-rosa-chart small{color:#785564;font-size:12px;display:block;line-height:1.5;margin:0 auto 4px;max-width:400px}
+.phx10-rosa-chart .phx10-subhead{margin-top:0;color:#803555}
+</style>
 <script>
-/* Phoenix Intelligence V10.2 - módulo aditivo sobre o ADM fornecido pelo cliente.
+/* Phoenix Intelligence V10.3 - módulo aditivo sobre o ADM fornecido pelo cliente.
  * Acesso ao banco exclusivamente pela sessão Supabase Auth já existente (sb).
  * Nunca inferir uma pontuação não persistida; preservar os PDFs e módulos anteriores.
  */
@@ -3570,12 +3584,104 @@ body.phx-project-mode .dashboard>.container{max-width:1440px}
  'use strict';
  const $=id=>document.getElementById(id);
  const LABELS={phoenix_diagnosticos:'Phoenix Diagnósticos',outubro_rosa:'Outubro Rosa',b2b_do:'B2B · D&O',hbr_experience:'Phoenix Experience / HBR',landing_auto:'Seguro Auto',outros:'Outros cadastros'};
- const state={active:false,seq:0,lead:null,project:'',submission:null,mapa:null,dimensions:[],recommendations:[],rows:[],score:null,scoreOrigin:'',priority:'',status:'',source:'',catalog:[],summary:new Map(),catalogLoaded:false,pending:false};
+ const state={active:false,seq:0,lead:null,project:'',submission:null,mapa:null,dimensions:[],recommendations:[],rows:[],score:null,scoreOrigin:'',priority:'',registry:null,registryState:'',status:'',source:'',catalog:[],summary:new Map(),catalogLoaded:false,pending:false};
  const safe=v=>String(v==null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const str=v=>v===undefined||v===null?'':typeof v==='string'?v.trim():typeof v==='object'?JSON.stringify(v):String(v);
- const validScore=v=>v!==null&&v!==undefined&&v!==''&&Number.isFinite(Number(v))&&Number(v)>=0&&Number(v)<=100?Number(v):null;
+ const validScore=v=>(typeof v==='number'||typeof v==='string')&&String(v).trim()!==''&&Number.isFinite(Number(v))&&Number(v)>=0&&Number(v)<=100?Number(v):null;
  const currentLeads=()=>typeof todosLeads!=='undefined'&&Array.isArray(todosLeads)?todosLeads:[];
  const client=()=>typeof sb!=='undefined'?sb:null;
+ /* Prioriza diagnósticos reais sobre registros automáticos criados pelo trigger legado.
+  * Não altera nem elimina dados anteriores. */
+ function recordQuality(x){
+   if(!x)return -100000;
+   let q=0;
+   if(validScore(x.total_score)!==null)q+=1000;
+   if(x.status==='completo')q+=180;
+   if(x.source==='edge_form_intake')q+=360;
+   // D&O: formulários completos recebem precedência sobre a ficha automática do gatilho,
+   // mesmo quando created_at é idêntico em ambas as linhas.
+   if(x.form_key==='b2b_do'&&x.answers?.empresa&&x.answers?.apolice)q+=7000;
+   if(x.form_key==='b2b_do'&&x.form_version==='2.1')q+=300;
+   if(x.form_version==='legacy_auto'||x.source==='lead_trigger_v1')q-=3000;
+   if(x.form_version==='legado'||x.source==='legacy_backfill')q-=220;
+   if(x.answers?.perguntas&&Object.keys(x.answers.perguntas).length)q+=50;
+   if(Array.isArray(x.recommendations)&&x.recommendations.length)q+=30;
+   return q;
+ }
+ function bestRecord(items,desired){
+   const arr=Array.isArray(items)?items:[];
+   const eligible=desired?arr.filter(x=>x.form_key===desired):arr;
+   return [...(eligible.length?eligible:arr)].sort((a,b)=>{
+     const qa=recordQuality(a),qb=recordQuality(b);
+     return qb-qa || new Date(b.created_at||0)-new Date(a.created_at||0) || String(b.id||'').localeCompare(String(a.id||''));
+   })[0]||null;
+ }
+ const ROSA_PILLARS=[
+   ['saude','Saúde preventiva','Saúde',
+    ['Tenho uma rotina de orientação preventiva com profissionais de saúde, respeitando minhas necessidades e momento de vida.','Se precisar de consultas, exames ou atendimento, sei onde ir e como obter o cuidado de que preciso.'],
+    ['Nossa empresa estimula informação e orientação preventiva para colaboradoras, de forma acolhedora e responsável.','A equipe conhece os meios disponíveis para acessar consultas, exames e outros cuidados de saúde.']],
+   ['bemestar','Bem-estar emocional','Bem-estar',
+    ['Consigo encontrar algum espaço para descanso e equilíbrio emocional na minha rotina.','Se precisar de apoio emocional profissional, sei onde buscar atendimento ou orientação.'],
+    ['Há iniciativas para acolhimento emocional, qualidade de vida e equilíbrio na jornada das colaboradoras.','Nossa equipe conhece caminhos para acessar apoio emocional e orientações quando necessário.']],
+   ['apoio','Rede de apoio','Apoio',
+    ['Tenho pessoas de confiança com quem contar em momentos difíceis.','Se precisar de ajuda para cuidar de mim ou de alguém da família, conheço os recursos e serviços disponíveis.'],
+    ['A organização conta com canais de acolhimento para colaboradoras em situações delicadas.','Nossos benefícios, serviços de apoio e orientações são comunicados com clareza à equipe.']],
+   ['vida','Proteção da vida','Vida',
+    ['Já refleti sobre quem precisaria de suporte caso eu enfrentasse um imprevisto importante.','Tenho alguma forma organizada de amparo financeiro para mim ou pessoas importantes diante de situações inesperadas.'],
+    ['A empresa considera como apoiar colaboradoras e familiares em imprevistos relevantes.','Existem medidas de amparo financeiro e continuidade que ajudam a proteger as pessoas da equipe.']],
+   ['financeiro','Estabilidade financeira','Finanças',
+    ['Conheço minhas principais despesas e procuro planejar meus recursos com antecedência.','Tenho alguma reserva ou estratégia para enfrentar despesas inesperadas sem comprometer toda a rotina.'],
+    ['Nossa empresa se organiza financeiramente para manter iniciativas de cuidado com as colaboradoras.','Analisamos possíveis custos de imprevistos que possam afetar pessoas, estrutura e continuidade.']],
+   ['futuro','Planejamento de futuro','Futuro',
+    ['Tenho prioridades pessoais e familiares para os próximos anos.','Costumo revisar meus planos e formas de proteção quando mudam minha família, trabalho ou rotina.'],
+    ['Temos objetivos claros para fortalecer o cuidado com colaboradoras e famílias.','A empresa revê regularmente benefícios, recursos e planos de continuidade conforme seu cenário muda.']]
+ ];
+ const ROSA_CONTEXT=[
+   ['dental','Acesso a cuidados odontológicos'],
+   ['property','Patrimônio ou estrutura relevante'],
+   ['propertyplan','Planejamento para imprevistos patrimoniais'],
+   ['review','Revisão das escolhas de proteção']
+ ];
+ function rosaAnswerLabel(v){
+   const dict={'100':'Sim, já faz parte / caminho organizado','60':'Em parte','20':'Ainda não','35':'Não tenho certeza','sim':'Sim, faz parte','nao':'Não se aplica','nao-sei':'Não tenho certeza'};
+   return dict[String(v)]||str(v);
+ }
+ function rosaAnswerItems(){
+   const row=state.submission;
+   if(state.project!=='outubro_rosa'||!row?.answers)return[];
+   const questionMap=row.answers.perguntas||{};
+   const context=row.answers.contexto||{};
+   const persona=str(row.answers.tipo_jornada||row.answers.perfil?.perfil||state.lead?.perfil||'').toLowerCase();
+   const b2b=persona.includes('b2b');
+   const entries=[];
+   ROSA_PILLARS.forEach(p=>{
+     const questions=b2b?p[4]:p[3];
+     for(let i=0;i<2;i++){
+       const key='q_'+p[0]+'_'+i;
+       const val=questionMap[key];
+       if(val!==null&&val!==undefined&&val!=='')entries.push([p[1]+' · '+questions[i],rosaAnswerLabel(val)]);
+     }
+   });
+   ROSA_CONTEXT.forEach(([key,title])=>{
+     const val=context[key];
+     if(val!==null&&val!==undefined&&val!=='')entries.push([title,rosaAnswerLabel(val)]);
+   });
+   return entries;
+ }
+ function rosaRadarHtml(){
+   if(state.project!=='outubro_rosa'||state.dimensions.length<6)return'';
+   const coords=[];const center=180,R=102,theta=i=>-Math.PI/2+i*Math.PI/3;
+   const point=(i,p)=>[center+Math.cos(theta(i))*R*p,center+Math.sin(theta(i))*R*p];
+   const poly=a=>a.map(t=>t.map(v=>v.toFixed(1)).join(',')).join(' ');
+   let svg='';for(let level=.2;level<=1.001;level+=.2)svg+='<polygon points="'+poly(Array.from({length:6},(_,i)=>point(i,level)))+'" fill="none" stroke="#ead5df" stroke-width="1"/>';
+   for(let i=0;i<6;i++){const p=point(i,1);svg+='<line x1="180" y1="180" x2="'+p[0].toFixed(1)+'" y2="'+p[1].toFixed(1)+'" stroke="#edd6e0"/>';}
+   const dots=state.dimensions.slice(0,6).map((d,i)=>point(i,Math.min(1,Math.max(0,d.score/(d.max||100)))));
+   svg+='<polygon points="'+poly(dots)+'" fill="#df85a2" fill-opacity="0.35" stroke="#b23b68" stroke-width="3"/>';
+   dots.forEach(p=>{svg+='<circle cx="'+p[0].toFixed(1)+'" cy="'+p[1].toFixed(1)+'" r="4" fill="#b23b68"/>';});
+   state.dimensions.slice(0,6).forEach((d,i)=>{const p=point(i,1.28);svg+='<text x="'+p[0].toFixed(1)+'" y="'+p[1].toFixed(1)+'" text-anchor="middle" font-family="Arial,sans-serif" font-size="10.5" font-weight="700" fill="#73314b">'+safe(d.label.slice(0,22))+'</text>';});
+   return '<div class="phx10-rosa-chart"><h4 class="phx10-subhead">Mapa de proteção · 6 dimensões</h4><svg role="img" aria-label="Gráfico hexagonal de proteção com seis dimensões" viewBox="0 0 360 360" xmlns="http://www.w3.org/2000/svg">'+svg+'</svg><small>Índice educativo calculado com base nas respostas enviadas; não representa avaliação clínica.</small></div>';
+ }
+
  function label(key){return state.catalog.find(x=>x.form_key===key)?.nome||LABELS[key]||key.replace(/_/g,' ')}
  function date(v){if(!v)return'—';const d=new Date(v);return Number.isFinite(d.getTime())?d.toLocaleDateString('pt-BR'):'—'}
  function guess(l){
@@ -3610,12 +3716,12 @@ body.phx-project-mode .dashboard>.container{max-width:1440px}
    if(!client())return;
    const [catalog,submissions]=await Promise.all([
      client().from('phoenix_form_catalog').select('form_key,nome,ativo').eq('ativo',true).order('nome'),
-     client().from('phoenix_form_submissions').select('id,lead_id,form_key,status,total_score,commercial_priority,created_at').order('created_at',{ascending:false}).limit(1000)
+     client().from('phoenix_form_submissions').select('id,lead_id,form_key,form_version,source,status,total_score,commercial_priority,created_at').order('created_at',{ascending:false}).limit(1000)
    ]);
    if(catalog.error||submissions.error){message('A base de leads continua disponível, mas não foi possível consultar todos os registros normalizados. '+[catalog.error?.message,submissions.error?.message].filter(Boolean).join(' '));}
    else message('');
    if(!catalog.error){state.catalog=catalog.data||[];state.catalogLoaded=true;}
-   if(!submissions.error){state.summary=new Map();(submissions.data||[]).forEach(x=>{if(!state.summary.has(String(x.lead_id)))state.summary.set(String(x.lead_id),x)})}
+   if(!submissions.error){state.summary=new Map();(submissions.data||[]).forEach(x=>{const key=String(x.lead_id);const previous=state.summary.get(key);if(!previous||recordQuality(x)>recordQuality(previous))state.summary.set(key,x)})}
    const select=$('phx10Filter');if(select){const current=select.value;const keys=new Set([...Object.keys(LABELS),...state.catalog.map(x=>x.form_key)]);
       select.innerHTML='<option value="">Todos os projetos</option>'+[...keys].map(k=>'<option value="'+safe(k)+'">'+safe(label(k))+'</option>').join('');select.value=keys.has(current)?current:'';}
  }
@@ -3686,7 +3792,7 @@ body.phx-project-mode .dashboard>.container{max-width:1440px}
  async function load(lead){
    if(!lead)return;const sequence=++state.seq;
    state.lead=lead;state.project=leadProject(lead);state.submission=null;state.mapa=null;state.dimensions=[];state.recommendations=[];state.rows=legacyRows(lead,state.project);
-   state.score=null;state.scoreOrigin='';state.priority=legacyPriority(lead);state.status='legado';state.source='Cadastro original (leads)';
+   state.score=null;state.scoreOrigin='';state.priority=legacyPriority(lead);state.registry=null;state.registryState='';state.status='legado';state.source='Cadastro original (leads)';
    if(state.project==='outubro_rosa'||state.project==='phoenix_diagnosticos'){
      const v=scoreInText(lead);if(v!==null){state.score=v;state.scoreOrigin='Índice declarado no cadastro original (texto legado, não validado por mapa)'}
    }
@@ -3699,11 +3805,11 @@ body.phx-project-mode .dashboard>.container{max-width:1440px}
      const qs=await db.from('phoenix_form_submissions').select('*').eq('lead_id',lead.id).order('created_at',{ascending:false}).limit(12);
      if(qs.error)throw qs.error;if(sequence!==state.seq)return;
      if(qs.data?.length){
-       const desired=guess(lead);const row=qs.data.find(s=>s.form_key===desired)||qs.data[0];
+       const desired=guess(lead);const row=bestRecord(qs.data,desired);
        state.submission=row;state.project=row.form_key;state.status=row.status||'parcial';state.source='Ficha normalizada no Supabase';
-       state.rows=uniqueRows([...state.rows,...expand(row.answers),...expand(row.results,'Resultado')]);
+       state.rows=uniqueRows([...state.rows,...expand(row.answers),...(row.form_key==='b2b_do'?[]:expand(row.results,'Resultado'))]);
        if(validScore(row.total_score)!==null){state.score=validScore(row.total_score);state.scoreOrigin='Índice registrado na ficha estruturada'}
-       if(row.commercial_priority)state.priority=str(row.commercial_priority);
+       if(row.commercial_priority||row.results?.prioridade_comercial)state.priority=str(row.commercial_priority||row.results.prioridade_comercial);
        if(Array.isArray(row.recommendations))state.recommendations=row.recommendations;
        const ds=await db.from('phoenix_form_dimension_scores').select('dimension_key,dimension_label,score,max_score,sort_order').eq('submission_id',row.id).order('sort_order',{ascending:true});
        if(sequence!==state.seq)return;
@@ -3723,7 +3829,82 @@ body.phx-project-mode .dashboard>.container{max-width:1440px}
        }
      }
    }catch(e){console.warn('[Phoenix projetos] falha na ficha',e);if(sequence===state.seq)state.source+=' · Consulta complementar indisponível: '+str(e.message||e)}
+   if(sequence===state.seq && state.project==='b2b_do' && state.submission?.answers?.empresa){
+     const company=state.submission.answers.empresa;
+     const saved=company.cadastro_publico;
+     const doc=String(company.cnpj||lead.cnpj||'').replace(/\D/g,'');
+     if(saved && typeof saved==='object' && Object.keys(saved).length){
+       state.registry=saved;
+       state.registryState='Informações registradas na data do envio, conforme declaração da consulta de CNPJ.';
+     }else if(doc.length===14){
+       state.registryState='Consulta pública atual não disponível; tente reconsultar a ficha.';
+       const controller=new AbortController();
+       const deadline=setTimeout(()=>controller.abort(),6000);
+       try{
+         const response=await fetch('https://brasilapi.com.br/api/cnpj/v1/'+encodeURIComponent(doc),{signal:controller.signal,headers:{Accept:'application/json'}});
+         if(!response.ok)throw Error('Consulta pública indisponível');
+         const data=await response.json();
+         if(sequence===state.seq && String(data.cnpj||'').replace(/\D/g,'')===doc){
+           const field=(k,n=160)=>String(data[k]??'').slice(0,n);
+           state.registry={
+             nome_fantasia:field('nome_fantasia',180),situacao_cadastral:field('descricao_situacao_cadastral')||field('situacao_cadastral'),
+             cnae_fiscal:field('cnae_fiscal',24),cnae_fiscal_descricao:field('cnae_fiscal_descricao',180),
+             municipio:field('municipio',100),uf:field('uf',2),logradouro:field('logradouro',150),
+             numero:field('numero',30),bairro:field('bairro',100),cep:field('cep',15),
+             consultado_em:new Date().toLocaleString('pt-BR'),fonte:'BrasilAPI'
+           };
+           state.registryState='Dados públicos consultados agora; não estavam arquivados no envio original.';
+         }
+       }catch(e){console.info('[Phoenix D&O] Consulta pública de CNPJ indisponível nesta sessão.');}
+       finally{clearTimeout(deadline)}
+     }
+   }
    if(sequence===state.seq)renderFicha();
+ }
+
+ function doSections(){
+   if(state.project!=='b2b_do')return [];
+   const a=state.submission?.answers||{},contact=a.contato||{},company=a.empresa||{},policy=a.apolice||{};
+   const registry=company.cadastro_publico||state.registry||{},results=state.submission?.results||{};
+   const first=(...values)=>values.find(v=>v!==null&&v!==undefined&&String(v).trim()!=='')||'';
+   const sections=[
+     ['01 · Contato e decisor',[
+       ['Nome completo',first(contact.nome,state.lead?.nome)],['Cargo / função',contact.cargo],
+       ['E-mail corporativo',first(contact.email,state.lead?.email)],['WhatsApp',first(contact.whatsapp,state.lead?.telefone)],
+       ['Melhor forma de contato',contact.canal],['Melhor horário',contact.horario]
+     ]],
+     ['02 · Informações da empresa',[
+       ['Razão social',first(company.razao_social,company.razao)],['CNPJ',first(company.cnpj,state.lead?.cnpj)],
+       ['Ramo de atividade',first(company.ramo_atividade,state.lead?.segmento)],['Faturamento anual',company.faturamento],
+       ['Estrutura de capital',company.capital],['Fundo ou investidor relevante',company.investidor]
+     ]],
+     ['03 · Dados públicos do CNPJ',[
+       ['Nome fantasia',registry.nome_fantasia],['Situação cadastral',registry.situacao_cadastral],
+       ['CNAE principal',registry.cnae_fiscal],['Atividade principal',registry.cnae_fiscal_descricao],
+       ['Município',registry.municipio],['UF',registry.uf],
+       ['Endereço', [registry.logradouro,registry.numero,registry.bairro].filter(Boolean).join(', ')],
+       ['CEP',registry.cep],['Data da consulta',registry.consultado_em]
+     ]],
+     ['04 · Seguro D&O e renovação',[
+       ['Já possui seguro D&O?',policy.ja_possui_do],['Vencimento da apólice',policy.vencimento],
+       ['Limite de cobertura pretendido',policy.limite],['Prioridade comercial',first(state.priority,results.prioridade_comercial)],
+       ['Interesse principal',first(a.objetivo_comercial,results.objetivo,state.lead?.interesse)],
+       ['Próximo passo / reunião',first(a.proximo_passo,results.proximo_passo)]
+     ]]
+   ];
+   return sections.map(([title,entries])=>[title,entries.filter(([,value])=>value!==undefined&&value!==null&&String(value).trim()!=='')]);
+ }
+ function doSheetHtml(){
+   if(state.project!=='b2b_do'||!state.submission?.answers?.empresa)return '';
+   let out='';
+   for(const [title,entries] of doSections()){
+     if(!entries.length)continue;
+     out+='<h4 class="phx10-subhead phx-do-subhead">'+safe(title)+'</h4>';
+     out+='<div class="phx10-fields phx-do-fields">'+entries.map(([k,v])=>'<div class="phx10-pair"><small>'+safe(k)+'</small><b>'+safe(v)+'</b></div>').join('')+'</div>';
+   }
+   const hasPublic=!!(state.submission?.answers?.empresa?.cadastro_publico||state.registry);
+   out+='<p class="phx-do-note">'+safe(state.registryState || (hasPublic?'Consulta de CNPJ registrada.':'Os dados públicos complementares do CNPJ ainda não estão disponíveis.'))+'</p>';
+   return out;
  }
  function renderFicha(){
    const card=$('phxProjectFicha'),proj=state.project;
@@ -3739,11 +3920,16 @@ body.phx-project-mode .dashboard>.container{max-width:1440px}
    }
    if(proj==='b2b_do')html+='<div class="phx10-scorebox"><div class="desc"><b>Prioridade / próximo passo</b><div>'+safe(state.priority||'Não consta no formulário')+'</div></div></div>';
    if(state.submission?.status==='parcial'&&proj==='outubro_rosa')html+='<div class="phx10-ficha-alert">Ficha parcial herdada do formulário anterior. Pontuações e recomendações só aparecerão se estiverem registradas.</div>';
+   if(state.project==='outubro_rosa')html+=rosaRadarHtml();
    if(state.dimensions.length){html+='<h4 class="phx10-subhead">Pontuação por dimensão</h4>'+state.dimensions.slice(0,24).map(d=>{
       const pct=Math.max(0,Math.min(100,Math.round(d.score/d.max*100)));
       return '<div class="phx10-dim"><div class="top"><span>'+safe(d.label)+'</span><span>'+safe(d.score)+' / '+safe(d.max)+'</span></div><div class="track"><i style="width:'+pct+'%"></i></div></div>';
    }).join('')}
-   if(state.rows.length){html+='<h4 class="phx10-subhead">Respostas e informações do cadastro</h4><div class="phx10-fields">'+state.rows.slice(0,65).map(([k,v])=>'<div class="phx10-pair"><small>'+safe(k)+'</small><b>'+safe(v)+'</b></div>').join('')+'</div>'}
+   const rosaAnswers=rosaAnswerItems();
+   if(rosaAnswers.length){html+='<h4 class="phx10-subhead">Respostas do Mapa de Proteção</h4><div class="phx10-fields">'+rosaAnswers.map(([q,a])=>'<div class="phx10-pair"><small>'+safe(q)+'</small><b>'+safe(a)+'</b></div>').join('')+'</div>';}
+   if(proj==='b2b_do'&&state.submission?.answers?.empresa&&state.submission?.answers?.apolice){
+     html+=doSheetHtml();
+   }else if(state.rows.length){html+='<h4 class="phx10-subhead">Respostas e informações do cadastro</h4><div class="phx10-fields">'+state.rows.slice(0,65).map(([k,v])=>'<div class="phx10-pair"><small>'+safe(k)+'</small><b>'+safe(v)+'</b></div>').join('')+'</div>'}
    if(state.recommendations.length){html+='<h4 class="phx10-subhead">Recomendações registradas</h4>'+state.recommendations.slice(0,20).map(x=>'<div class="phx10-rec">'+safe(recText(x))+'</div>').join('')}
    if(!state.rows.length&&!state.dimensions.length&&!state.recommendations.length)html+='<div class="phx10-ficha-alert">Somente os dados básicos deste lead estão disponíveis. Nenhum questionário detalhado foi arquivado.</div>';
    $('phx10FichaContent').innerHTML=html;
@@ -3767,10 +3953,25 @@ body.phx-project-mode .dashboard>.container{max-width:1440px}
      for(const [k,v] of [['Nome',ref.nome],['E-mail',ref.email],['Telefone',ref.telefone],['CNPJ',ref.cnpj],['Campanha',ref.campanha],['Origem',ref.origem],['Data de cadastro',date(ref.created_at)],['Tipo de ficha',label(state.project)],['Fonte dos dados',state.source]])row(k,v);
      title(state.project==='b2b_do'?'Análise de oportunidade e prioridade':'Mapa de pontuação');
      if(state.score!==null){row('Índice registrado',state.score.toLocaleString('pt-BR',{maximumFractionDigits:1})+' / 100');row('Origem da pontuação',state.scoreOrigin)}
-     else if(state.project==='b2b_do')row('Prioridade comercial',state.priority||'Não informada');
+     else if(state.project==='b2b_do'){
+       row('Prioridade comercial',state.priority||'Não informada');
+       if(state.submission?.answers?.apolice){
+         const policy=state.submission.answers.apolice;
+         row('Seguro D&O atual',policy.ja_possui_do||'Não informado');
+         row('Vencimento da apólice',policy.vencimento||'Não informado');
+       }
+     }
      else row('Estado da pontuação','Não disponível no banco de dados. O relatório não presume nem recalcula pontuação.');
      if(state.dimensions.length){title('Dimensões do diagnóstico');state.dimensions.forEach(x=>row(x.label,x.score+' de '+x.max))}
-     if(state.rows.length){title('Respostas e informações armazenadas');state.rows.forEach(([k,v])=>row(k,v))}
+     const rosaAnswers=rosaAnswerItems();
+     if(rosaAnswers.length){title('Respostas do Mapa de Proteção');rosaAnswers.forEach(([q,v])=>row(q,v))}
+     if(state.project==='b2b_do'&&state.submission?.answers?.empresa&&state.submission?.answers?.apolice){
+       for(const [section,entries] of doSections()){
+         if(!entries.length)continue;
+         title(section);entries.forEach(([k,v])=>row(k,v));
+       }
+       if(state.registryState){title('Origem e atualização do cadastro');row('Informação do CNPJ',state.registryState)}
+     }else if(state.rows.length){title('Respostas e informações armazenadas');state.rows.forEach(([k,v])=>row(k,v))}
      if(state.recommendations.length){title('Recomendações registradas');state.recommendations.forEach((x,i)=>row('Recomendação '+(i+1),recText(x)))}
      if(!state.rows.length&&!state.dimensions.length&&!state.recommendations.length){title('Limitação do registro');row('Dados detalhados','Não constam respostas individuais ou recomendações arquivadas. Consulte a origem antes de elaborar uma proposta.');}
      if(state.project==='outubro_rosa'){title('Nota do relatório');row('Finalidade','Material educativo de proteção. O índice exibido não é diagnóstico médico nem substitui orientação profissional.')}
@@ -3778,7 +3979,7 @@ body.phx-project-mode .dashboard>.container{max-width:1440px}
      const normalized=(ref.nome||'Lead').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^A-Za-z0-9]+/g,'_').slice(0,40)||'Lead';
      const file='Phoenix_Ficha_'+state.project+'_'+normalized+'_'+new Date().toISOString().slice(0,10)+'.pdf';doc.save(file);
      const db=client();try{const user=await db?.auth.getUser();if(db&&user?.data?.user?.id&&ref.id&&state.project!=='outros'){
-       const log=await db.from('phoenix_form_pdf_exports').insert({lead_id:ref.id,submission_id:state.submission?.id||null,form_key:state.project,document_name:file,generated_by:user.data.user.id,template_version:'10.2',report_metadata:{action:'download_iniciado',source:state.source}});
+       const log=await db.from('phoenix_form_pdf_exports').insert({lead_id:ref.id,submission_id:state.submission?.id||null,form_key:state.project,document_name:file,generated_by:user.data.user.id,template_version:'10.4-do',report_metadata:{action:'download_iniciado',source:state.source}});
        if(log.error)console.warn('[Phoenix projetos] auditoria de PDF:',log.error.message);
      }}catch(e){console.warn('[Phoenix projetos] sem auditoria:',e)}
    }catch(e){console.error('[Phoenix projetos] PDF:',e);alert('Não foi possível gerar o PDF. '+str(e.message||e))}
