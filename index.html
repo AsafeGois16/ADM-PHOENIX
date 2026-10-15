@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Phoenix Intelligence V9.0|PDF Diagnóstico Completo</title>
+    <title>Phoenix Intelligence V10.2 | Projetos, Fichas e PDFs</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -1097,6 +1097,61 @@
 @media(max-width:950px){.pxe-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.pxe-sections{grid-template-columns:1fr}.v7-tabs{width:100%;overflow:auto}}
 @media(max-width:580px){.pxe-hero{padding:23px 19px;align-items:flex-start;flex-direction:column}.pxe-stats{gap:8px}.pxe-stat{padding:12px}.pxe-tools input{flex-basis:100%}.pxe-tools select{flex:1;max-width:none}.pxe-status-grid{gap:6px}.pxe-bar-label{width:125px}.pxe-box{padding:14px}}
 
+/* ========== PHOENIX INTELLIGENCE V10.2 | CENTRAL DE PROJETOS ========== */
+#phxProjectView[hidden],#phxProjectFicha[hidden]{display:none!important}
+body.phx-project-mode .dashboard>.container{max-width:1440px}
+#phxProjectView{font-family:Inter,system-ui,sans-serif;--px-navy:#122d51;--px-blue:#2167a7;--px-line:#dce6f0;color:#233b55}
+.phx10-hero{background:linear-gradient(115deg,#09213e,#143d69 67%,#2874b2);border-radius:20px;color:white;padding:27px 30px;display:flex;justify-content:space-between;align-items:flex-end;gap:22px;box-shadow:0 14px 35px #15365918}
+.phx10-eyebrow{font-size:.68rem;font-weight:800;color:#a5caeb;letter-spacing:.15em;text-transform:uppercase;display:block}
+.phx10-hero h2{font-size:clamp(1.3rem,2.5vw,2rem);margin:8px 0;letter-spacing:-.025em;color:#fff}
+.phx10-hero p{font-size:.82rem;line-height:1.65;color:#d0dff0;max-width:760px;margin:0}
+.phx10-hero-side{text-align:right;min-width:180px}.phx10-hero-side b{font-size:.86rem;color:#fff;display:block}.phx10-hero-side small{display:block;font-size:.67rem;color:#b8d0e8;margin-top:5px}
+.phx10-kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin:16px 0}
+.phx10-kpi{background:white;border:1px solid var(--px-line);border-radius:15px;padding:16px 19px;box-shadow:0 6px 19px #0b2b4810}
+.phx10-kpi strong{display:block;font-size:1.65rem;line-height:1;font-weight:900;letter-spacing:-.03em;color:var(--px-navy)}
+.phx10-kpi span{display:block;color:#68829b;font-size:.72rem;font-weight:750;margin-top:9px}
+.phx10-kpi:nth-child(3){border-top:3px solid #cd5683}.phx10-kpi:nth-child(4){border-top:3px solid #4a6db0}
+.phx10-toolbar{background:#fff;border:1px solid var(--px-line);border-radius:16px;padding:17px;display:flex;align-items:end;gap:12px;flex-wrap:wrap;margin:0 0 13px}
+.phx10-field{flex:1;min-width:155px}.phx10-field.wide{flex:2;min-width:230px}
+.phx10-field label{display:block;color:#6a8198;text-transform:uppercase;letter-spacing:.045em;font-size:.65rem;font-weight:850;margin-bottom:6px}
+.phx10-field input,.phx10-field select{width:100%;height:42px;border:1px solid #d9e4ef;border-radius:10px;background:#fcfdff;padding:8px 11px;font:inherit;color:#233e5f;font-size:.8rem;outline-offset:2px}
+.phx10-button{border:0;border-radius:10px;background:#174c80;color:#fff;padding:12px 16px;font:inherit;font-weight:750;font-size:.76rem;min-height:42px;cursor:pointer}.phx10-button:hover{background:#10365d}.phx10-button:disabled{opacity:.55;cursor:wait}
+.phx10-note{font-size:.75rem;color:#667f97;line-height:1.55;padding:0 2px;margin:0 0 10px}
+.phx10-msg{padding:11px 13px;background:#fff9e9;border:1px solid #eddbad;border-radius:10px;color:#805a20;font-size:.75rem;margin-bottom:12px}.phx10-msg[hidden]{display:none!important}
+.phx10-tablewrap{overflow:auto;background:#fff;border:1px solid var(--px-line);border-radius:17px;box-shadow:0 8px 25px #0b2b480b}
+.phx10-table{min-width:980px;width:100%;border-collapse:collapse}.phx10-table th{position:sticky;top:0;background:#f5f8fc;font-size:.66rem;text-transform:uppercase;letter-spacing:.06em;color:#77899d;font-weight:900;padding:13px 15px;border-bottom:1px solid #e5edf6}
+.phx10-table td{vertical-align:middle;padding:13px 15px;border-bottom:1px solid #edf2f7;color:#3b536b;font-size:.79rem}.phx10-table tbody tr:hover{background:#f9fbfe}.phx10-table strong{color:#183b60;font-size:.8rem}
+.phx10-sub{display:block;font-size:.68rem;color:#8699ab;margin-top:3px;max-width:245px;overflow-wrap:anywhere}
+.phx10-chip{display:inline-flex;border-radius:99px;padding:6px 10px;font-weight:850;font-size:.66rem;white-space:nowrap;background:#eef4fa;color:#275d8c}
+.phx10-chip.rosa{background:#fff0f6;color:#b23b6b}.phx10-chip.b2b{background:#eaf1fc;color:#354d94}.phx10-chip.other{background:#f3f4f6;color:#64748b}
+.phx10-flag{font-size:.68rem;font-weight:800;color:#445d77}.phx10-flag.warn{color:#a16a20}.phx10-mini{border:0;border-radius:8px;padding:9px 12px;font-size:.7rem;font-weight:850;background:#17548e;color:#fff;cursor:pointer;white-space:nowrap}
+.phx10-mini:hover{background:#123d6a}
+.phx10-footer{font-size:.71rem;color:#71869b;margin:11px 0 26px;line-height:1.5}
+.phx10-ficha{border:1px solid #bfcee2!important;background:linear-gradient(165deg,#ffffff 0%,#f7faff 100%)}
+.phx10-ficha.rosa{border-color:#f0cddc!important;background:linear-gradient(170deg,#ffffff,#fff8fb)}
+.phx10-ficha-title{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap}
+.phx10-ficha-title h3{margin:0!important;color:#193d67!important;font-size:1rem!important}
+.phx10-ficha-label{padding:5px 9px;background:#e8f1fb;border-radius:99px;color:#245c92;font-weight:900;font-size:.62rem}
+.phx10-ficha.rosa .phx10-ficha-label{background:#fce8f0;color:#a93668}
+.phx10-ficha-summary{margin-top:12px;color:#637c93;font-size:.73rem;line-height:1.6}
+.phx10-ficha-alert{font-size:.75rem;line-height:1.6;padding:12px 13px;background:#fff8e8;border-radius:11px;border:1px solid #efdfa8;color:#79551d;margin-top:11px}
+.phx10-scorebox{display:flex;align-items:center;gap:14px;padding:15px;background:#edf5fd;border-radius:12px;margin-top:12px}
+.phx10-ficha.rosa .phx10-scorebox{background:#ffedf4}.phx10-scorebox .num{font-size:2.25rem;font-weight:950;letter-spacing:-.08em;color:#194b7c}
+.phx10-ficha.rosa .phx10-scorebox .num{color:#b33b6d}.phx10-scorebox .desc{font-size:.75rem;line-height:1.5;color:#466681}
+.phx10-subhead{margin:16px 0 8px;font-size:.69rem;font-weight:900;color:#3a6086;text-transform:uppercase;letter-spacing:.06em}
+.phx10-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.phx10-pair{border:1px solid #e5ecf4;padding:9px 11px;background:#fff;border-radius:10px;min-width:0}
+.phx10-pair small{display:block;font-size:.61rem;font-weight:850;color:#7a8fa2;line-height:1.4}
+.phx10-pair b{display:block;font-size:.74rem;line-height:1.5;color:#233e5b;overflow-wrap:anywhere;font-weight:700;margin-top:4px;white-space:pre-wrap}
+.phx10-dim{padding:10px 0;border-bottom:1px solid #e8eff5}.phx10-dim .top{display:flex;justify-content:space-between;font-size:.76rem;color:#335675;font-weight:800;gap:12px}
+.phx10-dim .track{height:7px;border-radius:99px;background:#e5edf4;margin-top:7px;overflow:hidden}.phx10-dim .track i{height:100%;display:block;background:#2072ae;border-radius:99px}.phx10-ficha.rosa .phx10-dim .track i{background:#bf4877}
+.phx10-rec{border-bottom:1px solid #e8eff5;padding:10px 1px;font-size:.74rem;line-height:1.55;color:#526b83}
+.phx10-rec strong{color:#294d70}.phx10-ficha-buttons{display:flex;gap:9px;flex-wrap:wrap;margin-top:14px}
+.phx10-ficha-buttons button{min-height:42px;flex:1;padding:10px 11px;border:0;border-radius:10px;background:#174b7d;color:white;font-size:.73rem;font-weight:850;cursor:pointer}.phx10-ficha-buttons button:disabled{opacity:.5;cursor:wait}
+.phx10-ficha-buttons button.phx10-secondary{background:#e6eef7;color:#275479}
+@media(max-width:1070px){.phx10-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}.phx10-hero-side{text-align:left}}
+@media(max-width:720px){.phx10-hero{flex-direction:column;align-items:start;padding:22px}.phx10-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.phx10-fields{grid-template-columns:1fr}.phx10-ficha-buttons{flex-direction:column}.phx10-table{min-width:850px}.phx10-toolbar{flex-direction:column;align-items:stretch}.phx10-field,.phx10-field.wide{width:100%}}
+
 </style>
 </head>
 <body>
@@ -1118,7 +1173,7 @@
     <div class="dashboard" id="dashboard">
         <div class="header">
             <div class="header-inner">
-                <h1>Phoenix Intelligence V9.3 — Acesso Seguro e Dados</h1>
+                <h1>Phoenix Intelligence V10.2 — ADM Universal</h1>
                 <div class="header-actions">
                     <button class="btn-refresh" id="headerRefreshBtn" onclick="atualizarDados()">↻ Atualizar</button><button class="btn-refresh" type="button" onclick="testSupabaseConnectionV84()">✓ Testar conexão</button><span id="connectionStatusV84" style="font-size:.72rem;font-weight:700;opacity:.9">Supabase: não testado</span><span id="adminIdentityV89" style="font-size:.68rem;opacity:.85" title="Sessão autenticada no Supabase">Não autenticado</span>
                     <button onclick="abrirLoginSorteio()">🎉 Sorteio</button>
@@ -1163,7 +1218,34 @@
                 <button class="v7-tab" id="v7TabCommercial" type="button" onclick="setPainelV7('commercial')">Inteligência Comercial</button>
                 <button class="v7-tab" id="v7TabBase" type="button" onclick="setPainelV7('base')">Base Universal</button>
                 <button class="v7-tab" id="v7TabExperience" type="button" onclick="setPainelV7('experience')">✦ Phoenix Experience</button>
+                <button class="v7-tab" id="phx10Tab" type="button" onclick="setPainelV7('projects')">▦ Projetos &amp; Fichas</button>
             </div>
+
+            <section id="phxProjectView" hidden aria-labelledby="phx10Title">
+  <header class="phx10-hero">
+    <div>
+      <span class="phx10-eyebrow">Phoenix Intelligence · Arquitetura Multicampanhas</span>
+      <h2 id="phx10Title">Central de Projetos &amp; Diagnósticos</h2>
+      <p>Uma visão única para Outubro Rosa, prospecção B2B, Diagnósticos Phoenix e novas campanhas. Consulte fichas, pontuações que foram realmente registradas, prioridades comerciais e gere relatórios individuais.</p>
+    </div>
+    <div class="phx10-hero-side"><b>SUPABASE · CONECTADO AO ADM</b><small id="phx10Updated">Atualize para consultar os registros.</small></div>
+  </header>
+  <div class="phx10-kpis" id="phx10Metrics" aria-label="Indicadores dos projetos"></div>
+  <div class="phx10-toolbar">
+    <div class="phx10-field wide"><label for="phx10Search">Buscar lead ou empresa</label><input id="phx10Search" type="search" autocomplete="off" placeholder="Nome, e-mail, CNPJ, campanha..." /></div>
+    <div class="phx10-field"><label for="phx10Filter">Projeto</label><select id="phx10Filter"><option value="">Todos os projetos</option></select></div>
+    <div class="phx10-field"><label for="phx10Status">Disponibilidade da ficha</label><select id="phx10Status"><option value="">Todas</option><option value="completo">Com resultado estruturado</option><option value="parcial">Parcial / incompleto</option><option value="legado">Somente cadastro legado</option></select></div>
+    <button class="phx10-button" type="button" id="phx10Refresh">↻ Atualizar projetos</button>
+  </div>
+  <div class="phx10-msg" id="phx10Message" role="status" hidden></div>
+  <p class="phx10-note" id="phx10Count">Exibindo dados da base universal com extensão de fichas por projeto.</p>
+  <div class="phx10-tablewrap">
+    <table class="phx10-table"><thead><tr><th>Projeto</th><th>Lead e empresa</th><th>Origem / campanha</th><th>Recebido em</th><th>Diagnóstico / ficha</th><th>Ações</th></tr></thead>
+      <tbody id="phx10Rows"><tr><td colspan="6" style="padding:30px;text-align:center;color:#73869a">Aguardando atualização...</td></tr></tbody>
+    </table>
+  </div>
+  <p class="phx10-footer">Indicadores mostram somente registros visíveis ao usuário autenticado. Cadastros antigos podem não ter todas as respostas; nessas situações o ADM não inventa score e informa a ausência no PDF.</p>
+</section>
 
             <section id="experienceView" class="pxe" hidden aria-labelledby="pxeTitle">
   <header class="pxe-hero">
@@ -1350,6 +1432,16 @@
             <div class="v7-drawer-head"><div><small>Phoenix Intelligence</small><h2 id="v7DrawerTitle">Ficha comercial</h2><p id="v7DrawerSubtitle">Diagnóstico B2B</p></div><button class="v7-close" type="button" onclick="fecharLeadV7()" aria-label="Fechar">×</button></div>
             <div class="v7-drawer-body">
                 <div class="v7-drawer-card"><h3>Resumo do lead</h3><div class="v7-lead-summary" id="v7LeadSummary"></div></div>
+                <div class="v7-drawer-card phx10-ficha" id="phxProjectFicha" hidden>
+  <div class="phx10-ficha-title"><h3 id="phx10FichaTitle">Ficha do projeto</h3><span class="phx10-ficha-label" id="phx10FichaTag">DIAGNÓSTICO</span></div>
+  <p class="phx10-ficha-summary" id="phx10FichaSummary">Carregando os dados detalhados no Supabase...</p>
+  <div id="phx10FichaContent"></div>
+  <div class="phx10-ficha-buttons">
+    <button type="button" id="phx10PdfButton">⇩ GERAR PDF DA FICHA</button>
+    <button type="button" class="phx10-secondary" id="phx10ReloadButton">↻ Reconsultar ficha</button>
+  </div>
+</div>
+
                 <div class="v7-drawer-card"><h3>Oportunidades por produto</h3><div class="v7-opportunity-list" id="v7LeadOpportunities"></div></div>
                 <div class="v7-drawer-card"><h3>Resumo do diagnóstico</h3><div id="v7LeadDiagnosis" style="font-size:.78rem;color:#566C84;line-height:1.55"></div><div class="v7-message-preview" id="v7MessagePreview" hidden></div></div>
                 
@@ -3469,5 +3561,254 @@
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();
 </script>
+<script>
+/* Phoenix Intelligence V10.2 - módulo aditivo sobre o ADM fornecido pelo cliente.
+ * Acesso ao banco exclusivamente pela sessão Supabase Auth já existente (sb).
+ * Nunca inferir uma pontuação não persistida; preservar os PDFs e módulos anteriores.
+ */
+(function(){
+ 'use strict';
+ const $=id=>document.getElementById(id);
+ const LABELS={phoenix_diagnosticos:'Phoenix Diagnósticos',outubro_rosa:'Outubro Rosa',b2b_do:'B2B · D&O',hbr_experience:'Phoenix Experience / HBR',landing_auto:'Seguro Auto',outros:'Outros cadastros'};
+ const state={active:false,seq:0,lead:null,project:'',submission:null,mapa:null,dimensions:[],recommendations:[],rows:[],score:null,scoreOrigin:'',priority:'',status:'',source:'',catalog:[],summary:new Map(),catalogLoaded:false,pending:false};
+ const safe=v=>String(v==null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ const str=v=>v===undefined||v===null?'':typeof v==='string'?v.trim():typeof v==='object'?JSON.stringify(v):String(v);
+ const validScore=v=>v!==null&&v!==undefined&&v!==''&&Number.isFinite(Number(v))&&Number(v)>=0&&Number(v)<=100?Number(v):null;
+ const currentLeads=()=>typeof todosLeads!=='undefined'&&Array.isArray(todosLeads)?todosLeads:[];
+ const client=()=>typeof sb!=='undefined'?sb:null;
+ function label(key){return state.catalog.find(x=>x.form_key===key)?.nome||LABELS[key]||key.replace(/_/g,' ')}
+ function date(v){if(!v)return'—';const d=new Date(v);return Number.isFinite(d.getTime())?d.toLocaleDateString('pt-BR'):'—'}
+ function guess(l){
+   const o=[l?.origem,l?.campanha].map(str).join(' ').toLowerCase();
+   const t=[str(l?.segmento).slice(0,320),str(l?.interesse).slice(0,160)].join(' ').toLowerCase();
+   if(/outubro rosa|proteção da mulher|protecao da mulher/.test(o+' '+t))return'outubro_rosa';
+   if(/phoenix d&o|patrimônio de quem decide|patrimonio de quem decide|prospecção b2b d&o|b2b\s*\|.*d&o/.test(o+' '+t))return'b2b_do';
+   if(/hbr|giro da sorte/.test(o))return'hbr_experience';
+   if(/phoenix diagn[oó]sticos|conecta fabrimar|diagnosticador|índice phoenix|indice phoenix|scores produtos|score comercial|status produtos/.test(o+' '+t))return'phoenix_diagnosticos';
+   if(/seguro auto|landing.*auto/.test(o))return'landing_auto';
+   return'outros';
+ }
+ function leadProject(l){return state.summary.get(String(l?.id))?.form_key||guess(l)}
+ function scoreInText(l){
+   const m=str(l?.segmento).match(/(?:^|\|\s*|\n)\s*[ÍIíi]ndice\s+Phoenix\s*:\s*(\d+(?:[.,]\d+)?)/i);
+   return m?validScore(m[1].replace(',','.')):null;
+ }
+ function mapId(l){const m=str(l?.segmento).match(/Mapa Outubro Rosa ID:\s*([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/i);return m?m[1]:null}
+ function legacyPriority(l){const m=str(l?.interesse).match(/(?:^|\n)Prioridade:\s*([^\n]+)/i);return m?m[1].trim():''}
+ function classifyStatus(l){
+   const normalized=state.summary.get(String(l?.id));
+   if(normalized){const hasScore=validScore(normalized.total_score)!==null;
+     return {value:hasScore||normalized.status==='completo'?'completo':'parcial',label:hasScore?'Score registrado':normalized.status==='completo'?'Ficha estruturada':'Cadastro parcial'};
+   }
+   const proj=leadProject(l);
+   if(proj==='outubro_rosa')return mapId(l)?{value:'completo',label:'Mapa vinculado*'}:{value:'legado',label:scoreInText(l)!==null?'Índice no cadastro*':'Sem pontuação'};
+   if(proj==='b2b_do')return{value:'legado',label:legacyPriority(l)?'Prioridade no cadastro':'Ficha comercial'};
+   return{value:'legado',label:'Cadastro legado'};
+ }
+ function message(t){const e=$('phx10Message');if(!e)return;e.hidden=!t;if(t)e.textContent=t}
+ async function catalogAndSummaries(){
+   if(!client())return;
+   const [catalog,submissions]=await Promise.all([
+     client().from('phoenix_form_catalog').select('form_key,nome,ativo').eq('ativo',true).order('nome'),
+     client().from('phoenix_form_submissions').select('id,lead_id,form_key,status,total_score,commercial_priority,created_at').order('created_at',{ascending:false}).limit(1000)
+   ]);
+   if(catalog.error||submissions.error){message('A base de leads continua disponível, mas não foi possível consultar todos os registros normalizados. '+[catalog.error?.message,submissions.error?.message].filter(Boolean).join(' '));}
+   else message('');
+   if(!catalog.error){state.catalog=catalog.data||[];state.catalogLoaded=true;}
+   if(!submissions.error){state.summary=new Map();(submissions.data||[]).forEach(x=>{if(!state.summary.has(String(x.lead_id)))state.summary.set(String(x.lead_id),x)})}
+   const select=$('phx10Filter');if(select){const current=select.value;const keys=new Set([...Object.keys(LABELS),...state.catalog.map(x=>x.form_key)]);
+      select.innerHTML='<option value="">Todos os projetos</option>'+[...keys].map(k=>'<option value="'+safe(k)+'">'+safe(label(k))+'</option>').join('');select.value=keys.has(current)?current:'';}
+ }
+ function render(){
+   if(!state.active)return;
+   let leads=currentLeads(),groups={};leads.forEach(l=>{let k=leadProject(l);groups[k]=(groups[k]||0)+1});
+   const gaps=leads.filter(l=>{const k=leadProject(l);return(k==='outubro_rosa'||k==='phoenix_diagnosticos')&&classifyStatus(l).value!=='completo'}).length;
+   const kpis=[['Cadastros',leads.length],['Diagnósticos',groups.phoenix_diagnosticos||0],['Outubro Rosa',groups.outubro_rosa||0],['B2B · D&O',groups.b2b_do||0],['Sem ficha completa',gaps]];
+   $('phx10Metrics').innerHTML=kpis.map(([k,v])=>'<div class="phx10-kpi"><strong>'+v+'</strong><span>'+safe(k)+'</span></div>').join('');
+   let q=$('phx10Search').value.toLocaleLowerCase('pt-BR').trim(),type=$('phx10Filter').value,st=$('phx10Status').value;
+   let filtered=leads.filter(l=>{
+     const k=leadProject(l),status=classifyStatus(l).value;
+     if(type&&type!==k)return false;if(st&&st!==status)return false;
+     if(!q)return true;
+     return [l.nome,l.email,l.cnpj,l.perfil,l.origem,l.campanha,l.segmento,l.interesse].some(x=>str(x).toLocaleLowerCase('pt-BR').includes(q));
+   }).sort((a,b)=>new Date(b.created_at||0)-new Date(a.created_at||0));
+   $('phx10Count').textContent='Exibindo '+filtered.length+' de '+leads.length+' cadastros visíveis. Clique em “Ficha & PDF” para abrir o registro e consultar as informações armazenadas.';
+   $('phx10Rows').innerHTML=filtered.slice(0,600).map(l=>{
+     const k=leadProject(l),f=classifyStatus(l),key=typeof getLeadKeyV7==='function'?getLeadKeyV7(l):'id:'+l.id;
+     const chip=k==='outubro_rosa'?'rosa':k==='b2b_do'?'b2b':k==='outros'?'other':'';
+     return '<tr><td><span class="phx10-chip '+chip+'">'+safe(label(k))+'</span></td>'+
+       '<td><strong>'+safe(l.nome||'Nome não informado')+'</strong><small class="phx10-sub">'+safe(l.email||l.telefone||'Sem contato')+'</small></td>'+
+       '<td>'+safe(l.origem||'Origem não informada')+'<small class="phx10-sub">'+safe(l.campanha||'—')+'</small></td>'+
+       '<td>'+safe(date(l.created_at))+'</td><td><span class="phx10-flag '+(f.value!=='completo'?'warn':'')+'">'+safe(f.label)+'</span></td>'+
+       '<td><button class="phx10-mini" data-lead="'+safe(key)+'" type="button">Ficha &amp; PDF</button></td></tr>';
+   }).join('')||'<tr><td colspan="6" style="padding:32px;text-align:center;color:#7c8c9e">Nenhum cadastro corresponde aos filtros.</td></tr>';
+   $('phx10Updated').textContent='Consulta: '+new Date().toLocaleString('pt-BR');
+ }
+ async function refresh(){
+   if(state.pending)return;state.pending=true;const btn=$('phx10Refresh');if(btn){btn.disabled=true;btn.textContent='Consultando...'}
+   try{
+     const u=await client()?.auth.getUser();if(!u?.data?.user)throw Error('É necessário entrar com um perfil Phoenix autorizado.');
+     if(typeof atualizarDados==='function')await atualizarDados();
+     await catalogAndSummaries();render();
+   }catch(e){message('Falha na atualização: '+str(e.message||e));render()}
+   finally{state.pending=false;if(btn){btn.disabled=false;btn.textContent='↻ Atualizar projetos'}}
+ }
+ function sectionRows(txtVal){
+    let data=[];str(txtVal).split(/\r?\n/).forEach(s=>{s=s.trim();if(!s)return;const p=s.indexOf(':');
+      if(p>0&&p<115)data.push([s.slice(0,p).trim(),s.slice(p+1).trim()]);
+      else if(s.length<160)data.push(['Descrição',s]);
+    });return data;
+ }
+ function legacyRows(lead,key){
+   let result=[];
+   if(key==='b2b_do')result=sectionRows(lead.interesse);
+   if(key==='phoenix_diagnosticos'||key==='outubro_rosa'){
+      str(lead.segmento).split(/\s*\|\s*/).forEach(p=>{const i=p.indexOf(':');if(i>0&&i<105)result.push([p.slice(0,i).trim(),p.slice(i+1).trim()]);});
+   }
+   return result;
+ }
+ function expand(value,prefix='',level=0){
+   if(level>3||value==null)return[];
+   if(Array.isArray(value))return value.flatMap((v,i)=>expand(v,prefix?prefix+' '+(i+1):'Item '+(i+1),level+1)).slice(0,100);
+   if(typeof value==='object')return Object.entries(value).flatMap(([k,v])=>expand(v,(prefix?prefix+' · ':'')+k.replace(/_/g,' '),level+1)).slice(0,100);
+   const t=str(value);return t?[[prefix||'Informação',t.slice(0,3000)]]:[];
+ }
+ function dimension(raw){
+   if(!raw||typeof raw!=='object')return null;
+   const x=raw.score??raw.pontuacao??raw.value,max=raw.max_score??raw.max??100;
+   if(!Number.isFinite(Number(x))||!Number.isFinite(Number(max))||Number(max)<=0||Number(x)<0)return null;
+   return {label:str(raw.dimension_label??raw.label??raw.nome??raw.dimension_key??raw.id??'Dimensão'),score:Number(x),max:Number(max)};
+ }
+ function uniqueRows(rows){const set=new Set();return rows.filter(r=>{
+    if(!r||!str(r[1]))return false;const k=str(r[0]).toLowerCase()+'|'+str(r[1]);if(set.has(k))return false;set.add(k);return true;
+ }).slice(0,130)}
+ function recText(v){if(typeof v==='string')return v;if(v&&typeof v==='object')return [v.tema||v.label||v.titulo||'',v.descricao||v.reason||v.proxima_reflexao||v.situacao||v.action||''].filter(Boolean).join(' — ');return str(v)}
+ async function load(lead){
+   if(!lead)return;const sequence=++state.seq;
+   state.lead=lead;state.project=leadProject(lead);state.submission=null;state.mapa=null;state.dimensions=[];state.recommendations=[];state.rows=legacyRows(lead,state.project);
+   state.score=null;state.scoreOrigin='';state.priority=legacyPriority(lead);state.status='legado';state.source='Cadastro original (leads)';
+   if(state.project==='outubro_rosa'||state.project==='phoenix_diagnosticos'){
+     const v=scoreInText(lead);if(v!==null){state.score=v;state.scoreOrigin='Índice declarado no cadastro original (texto legado, não validado por mapa)'}
+   }
+   const card=$('phxProjectFicha');if(!card)return;
+   if(state.project==='outros'&&!state.summary.has(String(lead.id))){card.hidden=true;return}
+   card.hidden=false;$('phx10FichaSummary').textContent='Consultando a ficha completa no Supabase...';$('phx10FichaContent').innerHTML='';
+   try{
+     const db=client();if(!db)throw Error('Supabase indisponível');
+     const u=await db.auth.getUser();if(!u?.data?.user)throw Error('Sessão não autenticada');
+     const qs=await db.from('phoenix_form_submissions').select('*').eq('lead_id',lead.id).order('created_at',{ascending:false}).limit(12);
+     if(qs.error)throw qs.error;if(sequence!==state.seq)return;
+     if(qs.data?.length){
+       const desired=guess(lead);const row=qs.data.find(s=>s.form_key===desired)||qs.data[0];
+       state.submission=row;state.project=row.form_key;state.status=row.status||'parcial';state.source='Ficha normalizada no Supabase';
+       state.rows=uniqueRows([...state.rows,...expand(row.answers),...expand(row.results,'Resultado')]);
+       if(validScore(row.total_score)!==null){state.score=validScore(row.total_score);state.scoreOrigin='Índice registrado na ficha estruturada'}
+       if(row.commercial_priority)state.priority=str(row.commercial_priority);
+       if(Array.isArray(row.recommendations))state.recommendations=row.recommendations;
+       const ds=await db.from('phoenix_form_dimension_scores').select('dimension_key,dimension_label,score,max_score,sort_order').eq('submission_id',row.id).order('sort_order',{ascending:true});
+       if(sequence!==state.seq)return;
+       if(ds.error)console.warn('[Phoenix projetos] dimensões',ds.error.message);
+       else state.dimensions=(ds.data||[]).map(dimension).filter(Boolean);
+     }
+     const id=mapId(lead);
+     if((state.project==='outubro_rosa'||guess(lead)==='outubro_rosa')&&id){
+       const mr=await db.from('phoenix_rosa_mapas').select('id,perfil,indice,dimensoes,recomendacoes,versao,created_at').eq('id',id).maybeSingle();
+       if(sequence!==state.seq)return;
+       if(mr.error)console.warn('[Phoenix projetos] mapa rosa',mr.error.message);
+       if(mr.data){state.mapa=mr.data;state.project='outubro_rosa';state.source='Mapa Outubro Rosa arquivado';state.status='completo';
+         const score=validScore(mr.data.indice);if(score!==null){state.score=score;state.scoreOrigin='Índice registrado na tabela phoenix_rosa_mapas'}
+         if(Array.isArray(mr.data.dimensoes))state.dimensions=mr.data.dimensoes.map(dimension).filter(Boolean);
+         if(Array.isArray(mr.data.recomendacoes))state.recommendations=mr.data.recomendacoes;
+         state.rows=uniqueRows([...state.rows,['Perfil do mapa',mr.data.perfil],['Versão do diagnóstico',mr.data.versao]]);
+       }
+     }
+   }catch(e){console.warn('[Phoenix projetos] falha na ficha',e);if(sequence===state.seq)state.source+=' · Consulta complementar indisponível: '+str(e.message||e)}
+   if(sequence===state.seq)renderFicha();
+ }
+ function renderFicha(){
+   const card=$('phxProjectFicha'),proj=state.project;
+   if(!card)return;
+   card.hidden=false;card.classList.toggle('rosa',proj==='outubro_rosa');
+   $('phx10FichaTitle').textContent=proj==='outubro_rosa'?'Mapa de Proteção da Mulher':proj==='b2b_do'?'Ficha Estratégica D&O':label(proj);
+   $('phx10FichaTag').textContent=proj==='outubro_rosa'?'OUTUBRO ROSA':proj==='b2b_do'?'PROSPECÇÃO B2B':'FICHA DO PROJETO';
+   $('phx10FichaSummary').textContent=state.source+' · '+(state.submission?.form_version?'Versão '+state.submission.form_version+' · ':'')+'Registro '+(state.status==='completo'?'estruturado':state.status==='parcial'?'parcial':'legado');
+   let html='';
+   if(state.score!==null){html+='<div class="phx10-scorebox"><div class="num">'+Number(state.score).toLocaleString('pt-BR',{maximumFractionDigits:1})+'<span style="font-size:1rem;letter-spacing:0">/100</span></div><div class="desc"><b>Índice de proteção</b><div>'+safe(state.scoreOrigin)+'</div></div></div>'}
+   else if(proj==='outubro_rosa'||proj==='phoenix_diagnosticos'){
+     html+='<div class="phx10-ficha-alert">O cadastro não contém pontuação comprovada. O ADM preserva as informações existentes, mas não pode reconstruir respostas e índices que não foram enviados ao banco.</div>';
+   }
+   if(proj==='b2b_do')html+='<div class="phx10-scorebox"><div class="desc"><b>Prioridade / próximo passo</b><div>'+safe(state.priority||'Não consta no formulário')+'</div></div></div>';
+   if(state.submission?.status==='parcial'&&proj==='outubro_rosa')html+='<div class="phx10-ficha-alert">Ficha parcial herdada do formulário anterior. Pontuações e recomendações só aparecerão se estiverem registradas.</div>';
+   if(state.dimensions.length){html+='<h4 class="phx10-subhead">Pontuação por dimensão</h4>'+state.dimensions.slice(0,24).map(d=>{
+      const pct=Math.max(0,Math.min(100,Math.round(d.score/d.max*100)));
+      return '<div class="phx10-dim"><div class="top"><span>'+safe(d.label)+'</span><span>'+safe(d.score)+' / '+safe(d.max)+'</span></div><div class="track"><i style="width:'+pct+'%"></i></div></div>';
+   }).join('')}
+   if(state.rows.length){html+='<h4 class="phx10-subhead">Respostas e informações do cadastro</h4><div class="phx10-fields">'+state.rows.slice(0,65).map(([k,v])=>'<div class="phx10-pair"><small>'+safe(k)+'</small><b>'+safe(v)+'</b></div>').join('')+'</div>'}
+   if(state.recommendations.length){html+='<h4 class="phx10-subhead">Recomendações registradas</h4>'+state.recommendations.slice(0,20).map(x=>'<div class="phx10-rec">'+safe(recText(x))+'</div>').join('')}
+   if(!state.rows.length&&!state.dimensions.length&&!state.recommendations.length)html+='<div class="phx10-ficha-alert">Somente os dados básicos deste lead estão disponíveis. Nenhum questionário detalhado foi arquivado.</div>';
+   $('phx10FichaContent').innerHTML=html;
+ }
+ function pdfText(v){return str(v).normalize('NFKC').replace(/[\u200B-\u200D\uFEFF]/g,'').slice(0,3500)}
+ async function exportPdf(){
+   if(!state.lead)return;
+   const btn=$('phx10PdfButton');if(btn){btn.disabled=true;btn.textContent='PREPARANDO PDF...'}
+   try{
+     const ref=state.lead;
+     await load(ref);
+     if(state.lead!==ref)throw Error('A seleção mudou. Abra a ficha novamente.');
+     const ctor=window.jspdf?.jsPDF;if(!ctor)throw Error('Biblioteca jsPDF não carregada. Atualize o navegador.');
+     const doc=new ctor({unit:'mm',format:'a4',compress:true});const w=210,left=16,right=194,pink=state.project==='outubro_rosa',accent=pink?[178,59,105]:[37,104,171],navy=[17,47,83];let y=0;
+     function header(){doc.setFillColor(...navy);doc.rect(0,0,210,31,'F');doc.setFillColor(...accent);doc.rect(0,31,210,1.5,'F');doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(15);doc.text('PHOENIX | INTELLIGENCE',left,13);doc.setFont('helvetica','normal');doc.setFontSize(9);doc.text(pdfText($('phx10FichaTitle').textContent),left,23);y=42}
+     function space(h=8){if(y+h>276){doc.addPage();header()}}
+     function title(t){space(13);doc.setFont('helvetica','bold');doc.setFontSize(10);doc.setTextColor(...navy);doc.text(pdfText(t).toUpperCase().slice(0,115),left,y);y+=8;}
+     function row(k,v){if(!pdfText(v))return;const name=pdfText(k),value=pdfText(v);doc.setFont('helvetica','bold');doc.setTextColor(...navy);doc.setFontSize(8);const labels=doc.splitTextToSize(name,175);space(labels.length*4+7);labels.forEach(t=>{doc.text(t,left,y);y+=3.9});doc.setFont('helvetica','normal');doc.setTextColor(62,82,101);doc.setFontSize(8);const lines=doc.splitTextToSize(value,176);for(const s of lines){space(4.2);doc.text(s,left,y);y+=4.05}y+=3.2;}
+     header();
+     title('Identificação e rastreabilidade');
+     for(const [k,v] of [['Nome',ref.nome],['E-mail',ref.email],['Telefone',ref.telefone],['CNPJ',ref.cnpj],['Campanha',ref.campanha],['Origem',ref.origem],['Data de cadastro',date(ref.created_at)],['Tipo de ficha',label(state.project)],['Fonte dos dados',state.source]])row(k,v);
+     title(state.project==='b2b_do'?'Análise de oportunidade e prioridade':'Mapa de pontuação');
+     if(state.score!==null){row('Índice registrado',state.score.toLocaleString('pt-BR',{maximumFractionDigits:1})+' / 100');row('Origem da pontuação',state.scoreOrigin)}
+     else if(state.project==='b2b_do')row('Prioridade comercial',state.priority||'Não informada');
+     else row('Estado da pontuação','Não disponível no banco de dados. O relatório não presume nem recalcula pontuação.');
+     if(state.dimensions.length){title('Dimensões do diagnóstico');state.dimensions.forEach(x=>row(x.label,x.score+' de '+x.max))}
+     if(state.rows.length){title('Respostas e informações armazenadas');state.rows.forEach(([k,v])=>row(k,v))}
+     if(state.recommendations.length){title('Recomendações registradas');state.recommendations.forEach((x,i)=>row('Recomendação '+(i+1),recText(x)))}
+     if(!state.rows.length&&!state.dimensions.length&&!state.recommendations.length){title('Limitação do registro');row('Dados detalhados','Não constam respostas individuais ou recomendações arquivadas. Consulte a origem antes de elaborar uma proposta.');}
+     if(state.project==='outubro_rosa'){title('Nota do relatório');row('Finalidade','Material educativo de proteção. O índice exibido não é diagnóstico médico nem substitui orientação profissional.')}
+     const pages=doc.getNumberOfPages();for(let i=1;i<=pages;i++){doc.setPage(i);doc.setDrawColor(217,225,235);doc.line(left,282,right,282);doc.setTextColor(115,129,143);doc.setFontSize(7);doc.text('Phoenix Insurance · Uso interno · Contém dados pessoais',left,289);doc.text(i+' / '+pages,right,289,{align:'right'})}
+     const normalized=(ref.nome||'Lead').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^A-Za-z0-9]+/g,'_').slice(0,40)||'Lead';
+     const file='Phoenix_Ficha_'+state.project+'_'+normalized+'_'+new Date().toISOString().slice(0,10)+'.pdf';doc.save(file);
+     const db=client();try{const user=await db?.auth.getUser();if(db&&user?.data?.user?.id&&ref.id&&state.project!=='outros'){
+       const log=await db.from('phoenix_form_pdf_exports').insert({lead_id:ref.id,submission_id:state.submission?.id||null,form_key:state.project,document_name:file,generated_by:user.data.user.id,template_version:'10.2',report_metadata:{action:'download_iniciado',source:state.source}});
+       if(log.error)console.warn('[Phoenix projetos] auditoria de PDF:',log.error.message);
+     }}catch(e){console.warn('[Phoenix projetos] sem auditoria:',e)}
+   }catch(e){console.error('[Phoenix projetos] PDF:',e);alert('Não foi possível gerar o PDF. '+str(e.message||e))}
+   finally{if(btn){btn.disabled=false;btn.textContent='⇩ GERAR PDF DA FICHA'}}
+ }
+ const originalSet=window.setPainelV7;
+ if(typeof originalSet==='function')window.setPainelV7=function(view){
+   if(view==='projects'){
+      originalSet('base');$('universalBaseView').hidden=true;$('phxProjectView').hidden=false;
+      $('v7TabBase').classList.remove('active');$('phx10Tab').classList.add('active');
+      document.body.classList.add('phx-project-mode');state.active=true;render();
+      if(!state.catalogLoaded)catalogAndSummaries().then(render).catch(e=>message(str(e.message||e)));
+   }else{
+      state.active=false;$('phxProjectView').hidden=true;$('phx10Tab').classList.remove('active');document.body.classList.remove('phx-project-mode');originalSet(view);
+   }
+ };
+ const originalOpen=window.abrirLeadV7;
+ if(typeof originalOpen==='function')window.abrirLeadV7=function(key){
+    originalOpen(key);const lead=typeof findLeadV7==='function'?findLeadV7(key):null;
+    if(lead)load(lead);
+ };
+ $('phx10Rows').addEventListener('click',e=>{const b=e.target.closest('button[data-lead]');if(b)window.abrirLeadV7(b.dataset.lead)});
+ $('phx10Filter').addEventListener('change',render);$('phx10Status').addEventListener('change',render);$('phx10Search').addEventListener('input',render);
+ $('phx10Refresh').addEventListener('click',refresh);
+ $('phx10PdfButton').addEventListener('click',exportPdf);
+ $('phx10ReloadButton').addEventListener('click',()=>{if(state.lead)load(state.lead)});
+ // Central de projetos acessível a qualquer momento, sem interferir com a atualização automática do evento.
+ window.phx10Projects={refresh,render,open:()=>window.setPainelV7('projects')};
+})();
+</script>
+
 </body>
 </html>
