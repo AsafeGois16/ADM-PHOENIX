@@ -64,6 +64,7 @@ function openDetail(id){
 async function refresh(){
  const message=$("novBlueFeedback");if(!message)return;
  message.textContent="Carregando resumos autorizados...";
+ rows=[];render();const detail=$("novBlueDetail");if(detail){detail.hidden=true;detail.textContent="";}
  const session=await sb.auth.getUser();
  if(session.error||!session.data?.user){message.textContent="Faça login no ADM para consultar este painel.";rows=[];render();return;}
  const profile=await sb.from("phoenix_profiles").select("id,active,role").eq("id",session.data.user.id).maybeSingle();
