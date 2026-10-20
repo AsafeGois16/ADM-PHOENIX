@@ -17,9 +17,10 @@ view.innerHTML="<header class='ptHero'><small>PHOENIX INSURANCE · PEOPLE INTELL
 "<button class='ptBtn' id='ptCreateInvite'>Gerar convite individual</button></div>"+
 "<p id='ptInviteNotice' class='ptNotice'>Convites expiram em 14 dias e aceitam uma única resposta. Confirme a publicação do site antes do envio.</p></div>"+
 "<div class='ptCard'><div class='ptGrid'><h3>Candidaturas recebidas</h3><button class='ptBtn soft' id='ptRefresh'>↻ Atualizar</button></div>"+
-"<div class='ptTableWrap'><table class='ptTable'><thead><tr><th>Candidato</th><th>E-mail</th><th>Vaga</th><th>Recebido</th><th>Ações</th></tr></thead><tbody id='ptRows'></tbody></table></div></div>"+
+"<div class='ptTableWrap'><table class='ptTable'><thead><tr><th>Candidato</th><th>E-mail</th><th>Vaga</th><th>Recebido</th><th>Etapa</th><th>Ações</th></tr></thead><tbody id='ptRows'></tbody></table></div></div>"+
 "<div class='ptCard' id='ptDetail' hidden></div><p id='ptMsg' role='status' aria-live='polite'></p>";
 const db=()=>typeof sb==='undefined'?null:sb;
+const statusLabels={assessment_received:'Avaliação recebida',interview:'Entrevista',review:'Em análise',hired:'Contratado(a)',closed:'Encerrado'};
 let active=false,jobs=[],candidates=[],assessments=[],reports=[],role='',current=null,generated='';
 function msg(x){$('ptMsg').textContent=x;}
 async function auth(){if(!db())throw Error('Supabase indisponível');const r=await db().auth.getUser();if(r.error||!r.data.user)throw Error('Faça login no ADM.');return r.data.user;}
@@ -40,8 +41,8 @@ const rs=await Promise.all([
 $('ptMetrics').innerHTML=[['Vagas',jobs.length],['Candidaturas',candidates.length],['Avaliações',assessments.length],['Pareceres IA',reports.length]].map(a=>'<article><strong>'+a[1]+'</strong>'+a[0]+'</article>').join('');
 $('ptJobSelect').innerHTML="<option value=''>Selecione uma vaga</option>"+jobs.filter(x=>x.status!=='closed').map(x=>"<option value='"+esc(x.id)+"'>"+esc(x.title)+"</option>").join('');
 $('ptRows').innerHTML=candidates.length?candidates.map(x=>{
-const job=jobs.find(j=>j.id===x.job_id);return "<tr><td>"+esc(x.full_name)+"</td><td>"+esc(x.email||'—')+"</td><td>"+esc(job?.title||'—')+"</td><td>"+new Date(x.created_at).toLocaleDateString('pt-BR')+"</td><td><button type='button' data-candidate='"+esc(x.id)+"'>Abrir ficha</button></td></tr>";
-}).join(''):"<tr><td colspan='5'>Nenhuma candidatura registrada.</td></tr>";
+const job=jobs.find(j=>j.id===x.job_id);return "<tr><td>"+esc(x.full_name)+"</td><td>"+esc(x.email||'—')+"</td><td>"+esc(job?.title||'—')+"</td><td>"+new Date(x.created_at).toLocaleDateString('pt-BR')+"</td><td>"+esc(statusLabels[x.status]||x.status)+"</td><td><button type='button' data-candidate='"+esc(x.id)+"'>Abrir ficha</button></td></tr>";
+}).join(''):"<tr><td colspan='6'>Nenhuma candidatura registrada.</td></tr>";
 $('ptCreateJob').disabled=$('ptCreateInvite').disabled=role==='viewer';msg('Dados sincronizados com o Supabase.');
 if(current)open(current);
 }catch(e){msg('Recrutamento: '+String(e.message||e));$('ptRows').innerHTML="<tr><td colspan='5'>Área indisponível para este usuário.</td></tr>";}
@@ -60,7 +61,8 @@ const dim=a?.result?.dimensions||{},bars=['D','I','S','C'].map(k=>{
 const share=Number(dim[k]?.relative_share_percent||0);
 return "<div class='ptBar'><b>"+k+"</b><div><span style='width:"+Math.max(0,Math.min(100,share))+"%'></span></div><small>"+share.toFixed(1)+"% dos pontos</small></div>";
 }).join('');
-$('ptDetail').innerHTML="<h3>Ficha do candidato: "+esc(c.full_name)+"</h3><p>Vaga: "+esc(job?.title||'Não informada')+"</p>"+
+const stageForm="<div class='ptGrid'><label>Etapa do processo<select id='ptStage'>"+Object.entries(statusLabels).map(([key,label])=>"<option value='"+key+"'"+(c.status===key?" selected":"")+">"+label+"</option>").join('')+"</select></label><button class='ptBtn soft' id='ptUpdateStage'>Salvar etapa</button></div>";
+$('ptDetail').innerHTML="<h3>Ficha do candidato: "+esc(c.full_name)+"</h3><p>Vaga: "+esc(job?.title||'Não informada')+"</p>"+stageForm+
 (a?"<div class='ptColumns'><div><h4>Dimensões · preferências relativas</h4>"+bars+
 "<p class='ptNotice'>Predominâncias: "+esc(a.result.primary)+" e "+esc(a.result.secondary)+". O ranking é ipsativo, não compara candidatos nem comprova aptidão.</p>"+
 "<button id='ptPdf' class='ptBtn soft'>Baixar relatório PDF</button></div><div><h4>Entrevista estruturada</h4>"+
@@ -68,6 +70,13 @@ $('ptDetail').innerHTML="<h3>Ficha do candidato: "+esc(c.full_name)+"</h3><p>Vag
 "<div class='ptActions'><button id='ptSaveInterview' class='ptBtn soft'>Salvar evidência</button><button id='ptAnalyze' class='ptBtn'>Analisar com IA</button></div>"+
 "<pre id='ptAIResult' class='ptResult'>"+esc(generated||'O agente ainda não analisou esta avaliação. Ele fornece perguntas e hipóteses para revisão humana, não decisões de contratação.')+"</pre></div></div>"
 :"<p class='ptNotice'>Ainda não há avaliação comportamental para esta candidatura.</p>");
+$('ptUpdateStage').disabled=$('ptStage').disabled=role==='viewer';
+$('ptUpdateStage').addEventListener('click',async()=>{
+try{const value=$('ptStage').value;if(!statusLabels[value])throw Error('Etapa inválida');
+const r=await db().from('phoenix_talent_candidates').update({status:value}).eq('id',c.id);if(r.error)throw r.error;
+msg('Etapa atualizada manualmente pelo RH.');c.status=value;await refresh();
+}catch(e){msg(String(e.message||e));}
+});
 if(!a)return;
 $('ptAnalyze').disabled=$('ptSaveInterview').disabled=role==='viewer';
 $('ptAnalyze').addEventListener('click',async()=>{
