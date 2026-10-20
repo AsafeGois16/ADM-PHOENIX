@@ -1,6 +1,7 @@
 (function(){
 'use strict';
 const API='https://cxyxrhmpjehrqhwihxul.supabase.co/functions/v1/phoenix-talent-api';
+const APP_URL='https://phoenix-tallent.vercel.app/';
 const $=id=>document.getElementById(id),esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const tabs=document.querySelector('.v7-tabs'),container=document.querySelector('.dashboard>.container');
 if(!tabs||!container)return;
@@ -13,7 +14,7 @@ view.innerHTML="<header class='ptHero'><small>PHOENIX INSURANCE · PEOPLE INTELL
 "<label>Área<input id='ptDept' maxlength='100' placeholder='Operações'></label><button class='ptBtn' id='ptCreateJob'>+ Criar vaga</button></div>"+
 "<div class='ptGrid'><label>Vaga vinculada<select id='ptJobSelect'><option value=''>Selecione uma vaga</option></select></label>"+
 "<label>E-mail do candidato<input id='ptInviteEmail' type='email' placeholder='candidato@exemplo.com'></label>"+
-"<label>URL publicada do formulário<input id='ptSiteUrl' type='url' placeholder='https://seu-projeto.vercel.app/'></label>"+
+"<label>Formulário de candidatura<input id='ptSiteUrl' type='url' readonly value='https://phoenix-tallent.vercel.app/' aria-label='Endereço oficial do Phoenix Talent'></label>"+
 "<button class='ptBtn' id='ptCreateInvite'>Gerar convite individual</button></div>"+
 "<p id='ptInviteNotice' class='ptNotice'>Convites expiram em 14 dias e aceitam uma única resposta. Confirme a publicação do site antes do envio.</p></div>"+
 "<div class='ptCard'><div class='ptGrid'><h3>Candidaturas recebidas</h3><button class='ptBtn soft' id='ptRefresh'>↻ Atualizar</button></div>"+
@@ -108,7 +109,7 @@ if(r.error)throw r.error;msg('Vaga criada.');await refresh();}catch(e){msg(Strin
 });
 $('ptCreateInvite').addEventListener('click',async()=>{
 try{
-const url=new URL($('ptSiteUrl').value.trim());if(url.protocol!=='https:')throw Error('Informe uma URL HTTPS publicada.');if(!$('ptInviteEmail').value.trim())throw Error('Informe o e-mail da pessoa convidada.');
+const url=new URL(APP_URL);if(!$('ptInviteEmail').value.trim())throw Error('Informe o e-mail da pessoa convidada.');
 const r=await backend('create_invite',{job_id:$('ptJobSelect').value||null,email:$('ptInviteEmail').value.trim()});
 url.searchParams.set('t',r.token);
 $('ptInviteNotice').textContent='Convite individual (uso único, validade de 14 dias): '+url.href+'. Envie somente para o e-mail indicado; não publique este link.';
