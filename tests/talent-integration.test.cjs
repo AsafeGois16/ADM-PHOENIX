@@ -16,6 +16,14 @@ assert.match(js, /phoenix_talent_candidates/);
 assert.match(js, /PhoenixTalentRH/);
 assert.match(js, /setPainelV7\('talent'\)/);
 assert.match(js, /ptCreateInvite/);
+assert.match(js, /CANDIDATE_ROLES/);
+for(const name of ['Backoffice / Operações','Atendimento e relacionamento','Comercial / Consultor(a)','Financeiro / Administrativo','Liderança / Gestão','Outra vaga']){
+ assert.ok(js.includes(name),'Área ausente no ADM: '+name);
+}
+assert.doesNotMatch(js,/ptJobName|ptDept|ptCreateJob|ptSiteUrl/);
+assert.match(js,/ptInviteGrid/);
+assert.match(css,/grid-template-columns:minmax\(0,1\.1fr\)/);
+assert.match(css,/@media\(max-width:600px\)/);
 assert.match(js, /ptAnalyze/);
 assert.match(js, /ptSaveInterview/);
 assert.match(js, /ptUpdateStage/);
