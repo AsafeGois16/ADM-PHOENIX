@@ -11,7 +11,7 @@ view.innerHTML="<header class='ptHero'><small>PHOENIX INSURANCE · PEOPLE INTELL
 "<div class='ptCard'><h3>Vagas e convites individuais</h3><div class='ptGrid'>"+
 "<label>Nome da vaga<input id='ptJobName' maxlength='130' placeholder='Ex.: Analista de Backoffice'></label>"+
 "<label>Área<input id='ptDept' maxlength='100' placeholder='Operações'></label><button class='ptBtn' id='ptCreateJob'>+ Criar vaga</button></div>"+
-"<div class='ptGrid'><label>Vaga vinculada<select id='ptJobSelect'><option value=''>Sem vínculo de vaga</option></select></label>"+
+"<div class='ptGrid'><label>Vaga vinculada<select id='ptJobSelect'><option value=''>Selecione uma vaga</option></select></label>"+
 "<label>E-mail do candidato<input id='ptInviteEmail' type='email' placeholder='candidato@exemplo.com'></label>"+
 "<label>URL publicada do formulário<input id='ptSiteUrl' type='url' placeholder='https://seu-projeto.vercel.app/'></label>"+
 "<button class='ptBtn' id='ptCreateInvite'>Gerar convite individual</button></div>"+
@@ -38,7 +38,7 @@ const rs=await Promise.all([
 ]);for(const x of rs)if(x.error)throw x.error;
 [jobs,candidates,assessments,reports]=rs.map(x=>x.data||[]);
 $('ptMetrics').innerHTML=[['Vagas',jobs.length],['Candidaturas',candidates.length],['Avaliações',assessments.length],['Pareceres IA',reports.length]].map(a=>'<article><strong>'+a[1]+'</strong>'+a[0]+'</article>').join('');
-$('ptJobSelect').innerHTML="<option value=''>Sem vínculo de vaga</option>"+jobs.filter(x=>x.status!=='closed').map(x=>"<option value='"+esc(x.id)+"'>"+esc(x.title)+"</option>").join('');
+$('ptJobSelect').innerHTML="<option value=''>Selecione uma vaga</option>"+jobs.filter(x=>x.status!=='closed').map(x=>"<option value='"+esc(x.id)+"'>"+esc(x.title)+"</option>").join('');
 $('ptRows').innerHTML=candidates.length?candidates.map(x=>{
 const job=jobs.find(j=>j.id===x.job_id);return "<tr><td>"+esc(x.full_name)+"</td><td>"+esc(x.email||'—')+"</td><td>"+esc(job?.title||'—')+"</td><td>"+new Date(x.created_at).toLocaleDateString('pt-BR')+"</td><td><button type='button' data-candidate='"+esc(x.id)+"'>Abrir ficha</button></td></tr>";
 }).join(''):"<tr><td colspan='5'>Nenhuma candidatura registrada.</td></tr>";
@@ -58,7 +58,7 @@ const previous=a&&reports.find(x=>x.assessment_id===a.id);generated=previous?.re
 $('ptDetail').hidden=false;
 const dim=a?.result?.dimensions||{},bars=['D','I','S','C'].map(k=>{
 const share=Number(dim[k]?.relative_share_percent||0);
-return "<div class='ptBar'><b>"+k+"</b><div><span style='width:"+Math.min(100,share*3)+"%'></span></div><small>"+share.toFixed(1)+"% dos pontos</small></div>";
+return "<div class='ptBar'><b>"+k+"</b><div><span style='width:"+Math.max(0,Math.min(100,share))+"%'></span></div><small>"+share.toFixed(1)+"% dos pontos</small></div>";
 }).join('');
 $('ptDetail').innerHTML="<h3>Ficha do candidato: "+esc(c.full_name)+"</h3><p>Vaga: "+esc(job?.title||'Não informada')+"</p>"+
 (a?"<div class='ptColumns'><div><h4>Dimensões · preferências relativas</h4>"+bars+
@@ -99,17 +99,17 @@ if(r.error)throw r.error;msg('Vaga criada.');await refresh();}catch(e){msg(Strin
 });
 $('ptCreateInvite').addEventListener('click',async()=>{
 try{
-const url=new URL($('ptSiteUrl').value.trim());if(url.protocol!=='https:')throw Error('Informe uma URL HTTPS publicada.');
+const url=new URL($('ptSiteUrl').value.trim());if(url.protocol!=='https:')throw Error('Informe uma URL HTTPS publicada.');if(!$('ptInviteEmail').value.trim())throw Error('Informe o e-mail da pessoa convidada.');
 const r=await backend('create_invite',{job_id:$('ptJobSelect').value||null,email:$('ptInviteEmail').value.trim()});
 url.searchParams.set('t',r.token);
-$('ptInviteNotice').textContent='Convite de uso único criado (14 dias). Compartilhe apenas com o destinatário: '+url.href;
+$('ptInviteNotice').textContent='Convite individual (uso único, validade de 14 dias): '+url.href+'. Envie somente para o e-mail indicado; não publique este link.';
 msg('Convite criado. A URL somente será mostrada agora; confirme se está publicada.');
 }catch(e){msg(String(e.message||e));}
 });
 const original=window.setPainelV7;
 if(typeof original==='function')window.setPainelV7=function(v){
-if(v==='talent'){original('base');$('universalBaseView').hidden=true;view.hidden=false;$('ptTab').classList.add('active');active=true;refresh();}
-else{active=false;view.hidden=true;$('ptTab').classList.remove('active');original(v);}
+if(v==='talent'){original('base');$('universalBaseView').hidden=true;view.hidden=false;$('v7TabBase')?.classList.remove('active');document.body.classList.add('phx-talent-mode');$('ptTab').classList.add('active');active=true;refresh();}
+else{active=false;view.hidden=true;document.body.classList.remove('phx-talent-mode');$('ptTab').classList.remove('active');original(v);}
 };
 window.PhoenixTalentRH={open:()=>window.setPainelV7('talent'),refresh};
 })();
