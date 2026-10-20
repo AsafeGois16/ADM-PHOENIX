@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Phoenix Intelligence V10.2 | Projetos, Fichas e PDFs</title>
+    <link rel="stylesheet" href="nov-blue-adm.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -1227,9 +1228,19 @@ body.phx-project-mode .dashboard>.container{max-width:1440px}
                 <button class="v7-tab" id="v7TabBase" type="button" onclick="setPainelV7('base')">Base Universal</button>
                 <button class="v7-tab" id="v7TabExperience" type="button" onclick="setPainelV7('experience')">✦ Phoenix Experience</button>
                 <button class="v7-tab" id="phx10Tab" type="button" onclick="setPainelV7('projects')">▦ Projetos &amp; Fichas</button>
+                <button class="v7-tab" id="novBlueTab" type="button" onclick="phoenixNovBlue.open()">◈ Novembro Azul B2C</button>
             </div>
 
-            <section id="phxProjectView" hidden aria-labelledby="phx10Title">
+            <section id="novBlueAdm" class="nb-admin" hidden aria-label="Leads consentidos Phoenix Azul 360°">
+ <header class="nb-hero"><div><span>PHOENIX INTELLIGENCE · CAMPANHA 2026</span><h2>Novembro Azul · Saúde Financeira B2C</h2><p>Veja os participantes que solicitaram contato, o índice educativo informado e a situação dos seguros. Nenhum valor de salário, farmácia ou outra despesa é enviado a este painel.</p></div><button type="button" id="novBlueRefresh">↻ Atualizar leads</button></header>
+ <div class="nb-kpis"><article><small>Leads consentidos</small><strong id="novBlueTotal">0</strong></article><article><small>Índice médio declarado</small><strong id="novBlueAvg">—</strong></article><article><small>Contatos solicitados</small><strong id="novBlueContact">0</strong></article></div>
+ <div class="nb-toolbar"><input type="search" id="novBlueSearch" placeholder="Buscar nome, e-mail ou telefone" aria-label="Buscar leads da campanha"><select id="novBlueScoreFilter" aria-label="Filtrar por índice"><option value="all">Todas as pontuações</option><option value="high">80 a 100%</option><option value="mid">60 a 79%</option><option value="low">0 a 59%</option><option value="missing">Não calculado</option></select><span id="novBlueCount">0 participantes</span></div>
+ <p id="novBlueFeedback" role="status" aria-live="polite">Abra a aba para consultar registros autorizados.</p>
+ <div class="nb-table-wrap"><table class="nb-table"><thead><tr><th>Participante / contato</th><th>Saúde financeira</th><th>Seguros declarados</th><th>Cadastro</th><th>Detalhes</th></tr></thead><tbody id="novBlueTableBody"><tr><td colspan="5" class="nb-empty">Nenhum registro carregado.</td></tr></tbody></table></div>
+ <section id="novBlueDetail" class="nb-detail" hidden aria-label="Ficha individual do lead"></section>
+</section>
+
+             <section id="phxProjectView" hidden aria-labelledby="phx10Title">
   <header class="phx10-hero">
     <div>
       <span class="phx10-eyebrow">Phoenix Intelligence · Arquitetura Multicampanhas</span>
@@ -4011,5 +4022,6 @@ body.phx-project-mode .dashboard>.container{max-width:1440px}
 })();
 </script>
 
+<script defer src="nov-blue-adm.js"></script>
 </body>
 </html>
