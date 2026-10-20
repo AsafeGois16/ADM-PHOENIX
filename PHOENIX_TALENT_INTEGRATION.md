@@ -9,14 +9,14 @@
 ## Dependências
 1. Migrações já aplicadas ao Supabase da Phoenix no projeto ativo `LEADS_PHOENIX INSURANCE`: tabelas `phoenix_talent_*` com RLS e retenção de 180 dias para candidaturas.
 2. Edge Function `phoenix-talent-api` ativa, com envios públicos somente mediante token aleatório e operações do RH mediante JWT de usuário autorizado.
-3. Repositório privado do formulário `AsafeGois16/phoenix-tallent`; publicar em equipe Vercel que tenha permissão. A Vercel retornou **403 de equipe** na conexão, então nenhuma URL de candidatos foi verificada.
+3. Repositório privado do formulário `AsafeGois16/phoenix-tallent` já publicado: **https://phoenix-tallent.vercel.app/**. Metadados Vercel confirmam implantação READY com GitHub main; a leitura direta/administração pelo conector segue limitada por 403 da equipe, portanto o fluxo de candidatura ainda requer teste de ponta a ponta.
 4. Para ativar IA, configurar segredo `OPENAI_API_KEY` no Supabase Edge Functions → Secrets; sem a chave, o botão retorna orientação de configuração. Não inserir chaves em GitHub.
 5. Um gestor já foi autorizado por seu papel ativo em `phoenix_profiles`. A concessão de demais acessos é explícita pela tabela `phoenix_talent_staff`.
 
 ## Verificações antes do merge
 - Confirmar que a aba 'Recrutamento · Talent' abre sem exibir dados do CRM comercial.
 - Voltar para Evento, Inteligência Comercial, Base e Novembro Azul sem sobreposição de telas.
-- Gerar uma vaga fictícia, convite vinculado a e-mail fictício e enviar avaliação de teste usando uma URL Vercel confirmada.
+- Gerar vaga fictícia, convite nominal usando automaticamente `https://phoenix-tallent.vercel.app/` e enviar avaliação de teste; confirmar que o ADM recebeu o resultado no Supabase.
 - Conferir gráfico DISC, registrar entrevista e exportar PDF.
 - Testar o agente somente após inserir `OPENAI_API_KEY` e revisar qualidade de texto.
 - Realizar revisão de privacidade/aviso ao candidato, adequação da base legal e política de conservação.
