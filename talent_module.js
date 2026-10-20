@@ -81,7 +81,7 @@ const r=await db().from('phoenix_talent_candidates').update({status:value}).eq('
 msg('Etapa atualizada manualmente pelo RH.');c.status=value;await refresh();
 }catch(e){msg(String(e.message||e));}
 });
-if(!a)return;
+if(!a){window.JarvisV3?.mount({candidate:c,assessment:a,job,previous,backend,db,msg,role});return;}
 $('ptAnalyze').disabled=$('ptSaveInterview').disabled=role==='viewer';
 $('ptAnalyze').addEventListener('click',async()=>{
 const b=$('ptAnalyze');b.disabled=true;msg('Produzindo parecer exploratório…');
@@ -102,6 +102,7 @@ add('Candidato: '+c.full_name);add('Vaga: '+(job?.title||'—'));
 add('Preferencias declaradas: '+JSON.stringify(dim));add('Instrumento autoral sem validacao psicometrica; revisao humana obrigatoria.');
 add('Parecer IA: '+(generated||'Nao realizado.'));doc.save('Phoenix_Talent_'+c.id.slice(0,8)+'.pdf');
 });
+window.JarvisV3?.mount({candidate:c,assessment:a,job,previous,backend,db,msg,role});
 }
 $('ptRows').addEventListener('click',e=>{const id=e.target.closest('[data-candidate]')?.dataset.candidate;if(id)open(id);});
 $('ptRefresh').addEventListener('click',refresh);
