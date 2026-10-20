@@ -16,13 +16,13 @@ view.innerHTML="<header class='ptHero'><small>PHOENIX INSURANCE · PEOPLE INTELL
 "<label>E-mail do candidato<input id='ptInviteEmail' type='email' placeholder='candidato@exemplo.com'></label>"+
 "<label>Formulário de candidatura<input id='ptSiteUrl' type='url' readonly value='https://phoenix-tallent.vercel.app/' aria-label='Endereço oficial do Phoenix Talent'></label>"+
 "<button class='ptBtn' id='ptCreateInvite'>Gerar convite individual</button></div>"+
-"<p id='ptInviteNotice' class='ptNotice'>Convites expiram em 14 dias e aceitam uma única resposta. Confirme a publicação do site antes do envio.</p></div>"+
+"<p id='ptInviteNotice' class='ptNotice'>Convites expiram em 14 dias e aceitam uma única resposta. Confirme a publicação do site antes do envio.</p><button class='ptBtn soft' id='ptCopyInvite' type='button' hidden>Copiar link do candidato</button></div>"+
 "<div class='ptCard'><div class='ptGrid'><h3>Candidaturas recebidas</h3><button class='ptBtn soft' id='ptRefresh'>↻ Atualizar</button></div>"+
 "<div class='ptTableWrap'><table class='ptTable'><thead><tr><th>Candidato</th><th>E-mail</th><th>Vaga</th><th>Recebido</th><th>Etapa</th><th>Ações</th></tr></thead><tbody id='ptRows'></tbody></table></div></div>"+
 "<div class='ptCard' id='ptDetail' hidden></div><p id='ptMsg' role='status' aria-live='polite'></p>";
 const db=()=>typeof sb==='undefined'?null:sb;
 const statusLabels={assessment_received:'Avaliação recebida',interview:'Entrevista',review:'Em análise',hired:'Contratado(a)',closed:'Encerrado'};
-let active=false,jobs=[],candidates=[],assessments=[],reports=[],role='',current=null,generated='';
+let active=false,jobs=[],candidates=[],assessments=[],reports=[],role='',current=null,generated='',lastInviteUrl='';
 function msg(x){$('ptMsg').textContent=x;}
 async function auth(){if(!db())throw Error('Supabase indisponível');const r=await db().auth.getUser();if(r.error||!r.data.user)throw Error('Faça login no ADM.');return r.data.user;}
 async function refresh(){
@@ -46,7 +46,7 @@ const job=jobs.find(j=>j.id===x.job_id);return "<tr><td>"+esc(x.full_name)+"</td
 }).join(''):"<tr><td colspan='6'>Nenhuma candidatura registrada.</td></tr>";
 $('ptCreateJob').disabled=$('ptCreateInvite').disabled=role==='viewer';msg('Dados sincronizados com o Supabase.');
 if(current)open(current);
-}catch(e){msg('Recrutamento: '+String(e.message||e));$('ptRows').innerHTML="<tr><td colspan='5'>Área indisponível para este usuário.</td></tr>";}
+}catch(e){jobs=[];candidates=[];assessments=[];reports=[];current=null;generated='';lastInviteUrl='';$('ptDetail').hidden=true;$('ptMetrics').replaceChildren();$('ptCopyInvite').hidden=true;msg('Recrutamento: '+String(e.message||e));$('ptRows').innerHTML="<tr><td colspan='6'>Área indisponível para este usuário.</td></tr>";}
 }
 async function backend(action,args){
 const s=await db().auth.getSession();if(!s.data.session)throw Error('Sessão expirada');
@@ -107,12 +107,13 @@ try{const title=$('ptJobName').value.trim();if(title.length<3)throw Error('Infor
 const u=await auth(),r=await db().from('phoenix_talent_jobs').insert({title,department:$('ptDept').value.trim(),status:'open',created_by:u.id});
 if(r.error)throw r.error;msg('Vaga criada.');await refresh();}catch(e){msg(String(e.message||e));}
 });
+$('ptCopyInvite').addEventListener('click',async()=>{if(!lastInviteUrl)return;try{await navigator.clipboard.writeText(lastInviteUrl);msg('Link individual copiado. Envie somente ao candidato correspondente.');}catch(e){msg('Não foi possível copiar automaticamente. Selecione e copie o endereço exibido acima.');}});
 $('ptCreateInvite').addEventListener('click',async()=>{
 try{
 const url=new URL(APP_URL);if(!$('ptInviteEmail').value.trim())throw Error('Informe o e-mail da pessoa convidada.');
 const r=await backend('create_invite',{job_id:$('ptJobSelect').value||null,email:$('ptInviteEmail').value.trim()});
 url.searchParams.set('t',r.token);
-$('ptInviteNotice').textContent='Convite individual (uso único, validade de 14 dias): '+url.href+'. Envie somente para o e-mail indicado; não publique este link.';
+lastInviteUrl=url.href;$('ptInviteNotice').textContent='Convite individual (uso único, validade de 14 dias): '+url.href+'. Envie somente para o e-mail indicado; não publique este link.';$('ptCopyInvite').hidden=false;
 msg('Convite criado. A URL somente será mostrada agora; confirme se está publicada.');
 }catch(e){msg(String(e.message||e));}
 });
