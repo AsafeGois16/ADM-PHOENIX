@@ -9,19 +9,19 @@ tabs.insertAdjacentHTML('beforeend',"<button class='v7-tab' id='ptTab' type='but
 const view=document.createElement('section');view.id='ptView';view.hidden=true;container.appendChild(view);
 view.innerHTML="<header class='ptHero'><small>PHOENIX INSURANCE · PEOPLE INTELLIGENCE</small><h2>PHOENIX TALENT · Recrutamento</h2><p>Vagas, questionário de preferências DISC, entrevistas e parecer exploratório. O sistema não aprova nem reprova candidatos.</p></header>"+
 "<div id='ptMetrics' class='ptKpis'></div>"+
-"<div class='ptCard'><h3>Vagas e convites individuais</h3><div class='ptGrid'>"+
-"<label>Nome da vaga<input id='ptJobName' maxlength='130' placeholder='Ex.: Analista de Backoffice'></label>"+
-"<label>Área<input id='ptDept' maxlength='100' placeholder='Operações'></label><button class='ptBtn' id='ptCreateJob'>+ Criar vaga</button></div>"+
-"<div class='ptGrid'><label>Vaga vinculada<select id='ptJobSelect'><option value=''>Selecione uma vaga</option></select></label>"+
-"<label>E-mail do candidato<input id='ptInviteEmail' type='email' placeholder='candidato@exemplo.com'></label>"+
-"<label>Formulário de candidatura<input id='ptSiteUrl' type='url' readonly value='https://phoenix-tallent.vercel.app/' aria-label='Endereço oficial do Phoenix Talent'></label>"+
+"<div class='ptCard'><h3>Convites individuais</h3>"+
+"<p class='ptLead'>Selecione a vaga e informe o e-mail. As opções são as mesmas do formulário do candidato; não é necessário cadastrar a vaga manualmente.</p>"+
+"<div class='ptInviteGrid'><label>Vaga / área<select id='ptJobSelect' required><option value=''>Selecione a vaga</option></select></label>"+
+"<label>E-mail do candidato<input id='ptInviteEmail' type='email' autocomplete='email' placeholder='candidato@exemplo.com' required></label>"+
 "<button class='ptBtn' id='ptCreateInvite'>Gerar convite individual</button></div>"+
+"<p class='ptOfficialLink'>Formulário oficial: <a href='https://phoenix-tallent.vercel.app/' target='_blank' rel='noopener noreferrer'>phoenix-tallent.vercel.app</a></p>"+
 "<p id='ptInviteNotice' class='ptNotice'>Convites expiram em 14 dias e aceitam uma única resposta. Confirme a publicação do site antes do envio.</p><button class='ptBtn soft' id='ptCopyInvite' type='button' hidden>Copiar link do candidato</button></div>"+
 "<div class='ptCard'><div class='ptGrid'><h3>Candidaturas recebidas</h3><button class='ptBtn soft' id='ptRefresh'>↻ Atualizar</button></div>"+
 "<div class='ptTableWrap'><table class='ptTable'><thead><tr><th>Candidato</th><th>E-mail</th><th>Vaga</th><th>Recebido</th><th>Etapa</th><th>Ações</th></tr></thead><tbody id='ptRows'></tbody></table></div></div>"+
 "<div class='ptCard' id='ptDetail' hidden></div><p id='ptMsg' role='status' aria-live='polite'></p>";
 const db=()=>typeof sb==='undefined'?null:sb;
 const statusLabels={assessment_received:'Avaliação recebida',interview:'Entrevista',review:'Em análise',hired:'Contratado(a)',closed:'Encerrado'};
+const CANDIDATE_ROLES=['Backoffice / Operações','Atendimento e relacionamento','Comercial / Consultor(a)','Financeiro / Administrativo','Liderança / Gestão','Outra vaga'];
 let active=false,jobs=[],candidates=[],assessments=[],reports=[],role='',current=null,generated='',lastInviteUrl='';
 function msg(x){$('ptMsg').textContent=x;}
 async function auth(){if(!db())throw Error('Supabase indisponível');const r=await db().auth.getUser();if(r.error||!r.data.user)throw Error('Faça login no ADM.');return r.data.user;}
@@ -40,11 +40,14 @@ const rs=await Promise.all([
 ]);for(const x of rs)if(x.error)throw x.error;
 [jobs,candidates,assessments,reports]=rs.map(x=>x.data||[]);
 $('ptMetrics').innerHTML=[['Vagas',jobs.length],['Candidaturas',candidates.length],['Avaliações',assessments.length],['Pareceres IA',reports.length]].map(a=>'<article><strong>'+a[1]+'</strong>'+a[0]+'</article>').join('');
-$('ptJobSelect').innerHTML="<option value=''>Selecione uma vaga</option>"+jobs.filter(x=>x.status!=='closed').map(x=>"<option value='"+esc(x.id)+"'>"+esc(x.title)+"</option>").join('');
+const selectedRole=$('ptJobSelect').value;
+const availableJobs=CANDIDATE_ROLES.map(role=>jobs.find(j=>j.title===role&&j.status==='open')).filter(Boolean);
+$('ptJobSelect').innerHTML="<option value=''>Selecione a vaga</option>"+availableJobs.map(x=>"<option value='"+esc(x.id)+"'>"+esc(x.title)+"</option>").join('');
+if(availableJobs.some(j=>j.id===selectedRole))$('ptJobSelect').value=selectedRole;
 $('ptRows').innerHTML=candidates.length?candidates.map(x=>{
 const job=jobs.find(j=>j.id===x.job_id);return "<tr><td>"+esc(x.full_name)+"</td><td>"+esc(x.email||'—')+"</td><td>"+esc(job?.title||'—')+"</td><td>"+new Date(x.created_at).toLocaleDateString('pt-BR')+"</td><td>"+esc(statusLabels[x.status]||x.status)+"</td><td><button type='button' data-candidate='"+esc(x.id)+"'>Abrir ficha</button></td></tr>";
 }).join(''):"<tr><td colspan='6'>Nenhuma candidatura registrada.</td></tr>";
-$('ptCreateJob').disabled=$('ptCreateInvite').disabled=role==='viewer';msg('Dados sincronizados com o Supabase.');
+$('ptCreateInvite').disabled=role==='viewer';msg('Vagas sincronizadas com o formulário do candidato.');
 if(current)open(current);
 }catch(e){jobs=[];candidates=[];assessments=[];reports=[];current=null;generated='';lastInviteUrl='';$('ptDetail').hidden=true;$('ptMetrics').replaceChildren();$('ptCopyInvite').hidden=true;msg('Recrutamento: '+String(e.message||e));$('ptRows').innerHTML="<tr><td colspan='6'>Área indisponível para este usuário.</td></tr>";}
 }
@@ -102,16 +105,14 @@ add('Parecer IA: '+(generated||'Nao realizado.'));doc.save('Phoenix_Talent_'+c.i
 }
 $('ptRows').addEventListener('click',e=>{const id=e.target.closest('[data-candidate]')?.dataset.candidate;if(id)open(id);});
 $('ptRefresh').addEventListener('click',refresh);
-$('ptCreateJob').addEventListener('click',async()=>{
-try{const title=$('ptJobName').value.trim();if(title.length<3)throw Error('Informe a vaga.');
-const u=await auth(),r=await db().from('phoenix_talent_jobs').insert({title,department:$('ptDept').value.trim(),status:'open',created_by:u.id});
-if(r.error)throw r.error;msg('Vaga criada.');await refresh();}catch(e){msg(String(e.message||e));}
-});
 $('ptCopyInvite').addEventListener('click',async()=>{if(!lastInviteUrl)return;try{await navigator.clipboard.writeText(lastInviteUrl);msg('Link individual copiado. Envie somente ao candidato correspondente.');}catch(e){msg('Não foi possível copiar automaticamente. Selecione e copie o endereço exibido acima.');}});
 $('ptCreateInvite').addEventListener('click',async()=>{
 try{
-const url=new URL(APP_URL);if(!$('ptInviteEmail').value.trim())throw Error('Informe o e-mail da pessoa convidada.');
-const r=await backend('create_invite',{job_id:$('ptJobSelect').value||null,email:$('ptInviteEmail').value.trim()});
+const url=new URL(APP_URL);
+const jobId=$('ptJobSelect').value;
+if(!jobId||!jobs.some(j=>j.id===jobId&&j.status==='open'&&CANDIDATE_ROLES.includes(j.title)))throw Error('Selecione uma vaga válida da lista.');
+if(!$('ptInviteEmail').value.trim())throw Error('Informe o e-mail da pessoa convidada.');
+const r=await backend('create_invite',{job_id:jobId,email:$('ptInviteEmail').value.trim()});
 url.searchParams.set('t',r.token);
 lastInviteUrl=url.href;$('ptInviteNotice').textContent='Convite individual (uso único, validade de 14 dias): '+url.href+'. Envie somente para o e-mail indicado; não publique este link.';$('ptCopyInvite').hidden=false;
 msg('Convite criado. A URL somente será mostrada agora; confirme se está publicada.');
