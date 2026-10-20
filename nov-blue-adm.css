@@ -50,3 +50,34 @@
 #novBlueFeedback{font-size:11px;color:#597e9c;line-height:1.5;margin-bottom:12px}
 @media(max-width:850px){.nb-hero{flex-direction:column;align-items:flex-start}.nb-kpis{grid-template-columns:1fr 1fr}.nb-detail-insurances{grid-template-columns:1fr 1fr}}
 @media(max-width:570px){.nb-kpis{grid-template-columns:1fr}.nb-detail-info,.nb-detail-insurances{grid-template-columns:1fr}.nb-hero{padding:20px}}
+
+
+/* Novembro Azul B2C · ficha individual financeira detalhada */
+.nb-consent-meta{font:600 11px Inter,sans-serif;color:#497e9e;margin:22px 0 10px}
+.nb-full-finance{border:1px solid #d4e5f3;background:linear-gradient(180deg,#f8fcff,#fff);border-radius:16px;padding:24px;margin-top:12px}
+.nb-full-heading>span{font-size:10px;font-weight:800;letter-spacing:.13em;color:#538cb3}
+.nb-full-heading h4{font:800 22px Inter,sans-serif;letter-spacing:-.025em;margin:10px 0 7px;color:#194866}
+.nb-full-heading p{font-size:12px;color:#758da0;line-height:1.55;margin:0}
+.nb-finance-kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px;margin:21px 0}
+.nb-finance-kpis>div{background:#fff;border:1px solid #dce9f3;border-radius:12px;padding:17px;min-width:0}
+.nb-finance-kpis small{display:block;font-size:11px;color:#7393a8;margin-bottom:8px}
+.nb-finance-kpis strong{font:800 20px Inter,sans-serif;display:block;color:#1c5c81;overflow-wrap:anywhere}
+.nb-finance-columns{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.nb-finance-columns>div{min-width:0;background:#fff;border:1px solid #e0eaf3;border-radius:13px;padding:17px}
+.nb-finance-columns h4{color:#235777;font-size:13px;margin:0 0 14px}
+.nb-expenses-list,.nb-insurance-list{display:grid;gap:4px;max-height:490px;overflow-y:auto}
+.nb-expense-line,.nb-insured-line{display:flex;align-items:center;justify-content:space-between;gap:12px;min-width:0;border-bottom:1px solid #edf2f7;padding:11px 2px;font-size:12px}
+.nb-expense-line:last-child,.nb-insured-line:last-child{border-bottom:0}
+.nb-expense-line span{color:#466982;overflow-wrap:anywhere}
+.nb-expense-line span>b{font-size:10px;color:#9ab0c1;margin-right:6px}
+.nb-expense-line strong,.nb-insured-line>b{white-space:nowrap;color:#1f658d;font-weight:800}
+.nb-insured-line>div{display:grid;gap:5px}
+.nb-insured-line>div strong{color:#345e79;font-size:12px}
+.nb-insured-line small{color:#7d94a7;font-size:11px}
+.nb-finance-columns .nb-context-title{margin-top:28px}
+.nb-context-grid{display:grid;gap:10px;background:#f3f8fc;padding:14px;border-radius:10px}
+.nb-context-grid span{color:#65839a;font-size:11px}
+.nb-context-grid b{color:#335f7e}
+.nb-finance-empty{background:#fff8e8;color:#87612c;font-size:12px;padding:18px;border:1px solid #ecd9b3;border-radius:11px;margin:20px 0}
+@media(max-width:950px){.nb-finance-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.nb-finance-columns{grid-template-columns:1fr}}
+@media(max-width:530px){.nb-full-finance{padding:16px}.nb-finance-kpis{grid-template-columns:1fr}.nb-finance-kpis strong{font-size:18px}}
