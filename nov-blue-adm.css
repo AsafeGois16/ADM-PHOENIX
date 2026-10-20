@@ -1,0 +1,52 @@
+/* Phoenix ADM — Novembro Azul B2C: resumo financeiro e mapa de seguros */
+#novBlueAdm[hidden]{display:none!important}
+.nb-admin{font-family:Inter,sans-serif;padding:4px 0 30px}
+.nb-hero{background:linear-gradient(120deg,#0b2946,#114d83);color:#fff;border-radius:17px;display:flex;align-items:center;justify-content:space-between;gap:18px;padding:24px 26px;margin-bottom:18px}
+.nb-hero span{font-size:10px;letter-spacing:.13em;color:#95c7e8;font-weight:800}
+.nb-hero h2{font-size:23px;margin:7px 0 9px;color:#fff}
+.nb-hero p{font-size:13px;line-height:1.6;color:#c2dbec;margin:0;max-width:750px}
+.nb-hero button,.nb-view,.nb-contact-actions a{border:1px solid #bfdaf0;background:#fff;color:#1c5d8c;border-radius:10px;padding:12px 15px;font:800 12px Inter,sans-serif;cursor:pointer}
+.nb-kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px;margin:0 0 16px}
+.nb-kpis article{background:white;border:1px solid #dbe7f3;border-radius:13px;padding:20px}
+.nb-kpis small{font-size:11px;color:#7990a5;display:block}
+.nb-kpis strong{display:block;font-size:31px;font-weight:800;color:#215784;margin-top:9px}
+.nb-toolbar{padding:17px 18px;background:#fff;border:1px solid #e1eaf2;border-radius:13px;display:flex;align-items:center;gap:13px;flex-wrap:wrap;margin-bottom:12px}
+.nb-toolbar input,.nb-toolbar select{font:13px Inter,sans-serif;padding:12px;border:1px solid #cfdde9;border-radius:9px;min-height:43px}
+.nb-toolbar input{flex:2;min-width:225px}
+.nb-toolbar select{flex:1;min-width:150px}
+.nb-toolbar span{font-size:11px;color:#7890a5}
+.nb-table-wrap{overflow-x:auto;background:#fff;border:1px solid #dfe9f3;border-radius:14px}
+.nb-table{border-collapse:collapse;width:100%;min-width:940px}
+.nb-table th{text-align:left;background:#eaf3fb;color:#396385;font-size:11px;letter-spacing:.05em;padding:14px}
+.nb-table td{vertical-align:middle;border-top:1px solid #e9eff6;padding:15px 14px;font-size:12px}
+.nb-table td>strong{display:block;color:#2b5578;font-size:13px}
+.nb-table td>small{display:block;color:#849ab0;margin-top:5px;font-size:11px}
+.nb-score{color:#2677aa;font-size:21px;white-space:nowrap}
+.nb-policies{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;min-width:370px}
+.nb-insurance-pair{display:flex;align-items:center;justify-content:space-between;gap:6px;background:#f8fbfe;border-radius:7px;padding:6px 8px}
+.nb-insurance-pair>span:first-child{font-size:10px;color:#607f95}
+.nb-status{font-size:9px;border-radius:20px;padding:5px 8px;font-weight:800;white-space:nowrap;background:#edf2f7;color:#83909d}
+.nb-status.owned{background:#e6f6f2;color:#21786a}
+.nb-status.not_owned{background:#fff2e6;color:#a27334}
+.nb-empty{padding:35px!important;text-align:center;color:#7890a5}
+.nb-detail{margin-top:20px;background:#fff;border:1px solid #dce8f2;border-radius:16px;padding:24px}
+.nb-detail-top{display:flex;justify-content:space-between;align-items:center;gap:15px;border-bottom:1px solid #e8eef4;padding-bottom:17px}
+.nb-detail-top small{font-size:10px;letter-spacing:.15em;color:#6b9bbc;font-weight:800}
+.nb-detail-top h3{font-size:24px;color:#15496f;margin:7px 0}
+.nb-detail-top span{font-size:11px;color:#7896ad}
+.nb-detail-top button{border:1px solid #d1e2ee;background:#edf5fb;padding:10px 15px;border-radius:10px;cursor:pointer}
+.nb-detail-info{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin:21px 0}
+.nb-detail-info>div{background:#f4f9fd;padding:17px;border-radius:11px;display:grid;gap:8px}
+.nb-detail-info small{font-size:11px;color:#7b94a8}
+.nb-detail-info strong{font-size:19px;color:#245b83;overflow-wrap:anywhere}
+.nb-detail-info span{font-size:12px;color:#6d899f}
+.nb-detail h4{font-size:14px;margin-bottom:13px;color:#2a5374}
+.nb-detail-insurances{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px}
+.nb-detail-insurances>div{background:#f8fbff;border:1px solid #e1eaf5;border-radius:11px;padding:13px;display:flex;justify-content:space-between;align-items:center;gap:9px}
+.nb-detail-insurances strong{font-size:11px;color:#4b6b85}
+.nb-privacy{font-size:11px;color:#7d91a2;line-height:1.6;background:#f1f6fa;border-radius:10px;padding:13px;margin-top:18px}
+.nb-contact-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:17px}
+.nb-contact-actions a{text-decoration:none;display:inline-block;border-color:#b9d8ed;background:#eff8ff}
+#novBlueFeedback{font-size:11px;color:#597e9c;line-height:1.5;margin-bottom:12px}
+@media(max-width:850px){.nb-hero{flex-direction:column;align-items:flex-start}.nb-kpis{grid-template-columns:1fr 1fr}.nb-detail-insurances{grid-template-columns:1fr 1fr}}
+@media(max-width:570px){.nb-kpis{grid-template-columns:1fr}.nb-detail-info,.nb-detail-insurances{grid-template-columns:1fr}.nb-hero{padding:20px}}
