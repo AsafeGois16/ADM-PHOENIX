@@ -134,177 +134,155 @@ function reportMarkup(report){
 
 function pdfReport(candidate,job,assessment,report,review){
  if(!window.jspdf?.jsPDF)throw Error("Biblioteca de PDF indisponível.");
+ if(!report)throw Error("Gere o parecer antes de exportar.");
  const doc=new window.jspdf.jsPDF({format:"a4",unit:"mm",compress:true});
- const W=210,H=297,BOTTOM=278,LEFT=17,RIGHT=193,CONTENT=176;
- const navy=[11,28,53],blue=[32,86,139],gold=[201,147,63],ink=[38,58,82],muted=[107,125,148],soft=[242,247,252];
- let y=0,page=0,contentStarted=false;
- const rgb=(c)=>doc.setTextColor(...c);
- const fill=(c)=>doc.setFillColor(...c);
- const stroke=(c)=>doc.setDrawColor(...c);
- const first=()=>page===1;
- function header(){
-  page++;y=46;contentStarted=false;
-  fill(navy);doc.rect(0,0,W,36,"F");
-  fill(gold);doc.rect(0,36,W,1.2,"F");
-  rgb(gold);doc.setFont("helvetica","bold");doc.setFontSize(8.3);
-  doc.text("P H O E N I X   /   P E O P L E   I N T E L L I G E N C E",LEFT,13);
-  rgb([248,251,255]);doc.setFontSize(17);
-  doc.text("JARVIS  /  DOSSIÊ EXECUTIVO",LEFT,27);
-  rgb(muted);doc.setFontSize(8.2);
-  stroke([222,231,238]);doc.line(LEFT,285,RIGHT,285);
-  doc.text("Análise exploratória · DISC autoral não validado · revisão exclusiva do RH",LEFT,290);
-  doc.text("P. "+page,RIGHT,290,{align:"right"});
+ const W=210,LEFT=17,RIGHT=193,WIDTH=176,TOP=43,BOTTOM=279;
+ const navy=[10,29,54],blue=[34,84,131],gold=[206,157,74],ink=[35,53,74],muted=[95,116,138],soft=[241,246,252];
+ const sections=report.sections||{},method=report.method||{},dims=assessment?.result?.dimensions||{};
+ const rows=Array.isArray(report.requirements?.items)?report.requirements.items:[];
+ const criticalStates=new Set(["dificuldade_observada","dificuldade_relatada","informacoes_divergentes"]);
+ const ranked=[...rows].sort((a,b)=>{
+  const priority=x=>x.priority==="essencial"?0:1;
+  const risk=x=>criticalStates.has(x.estado)?0:1;
+  return priority(a)-priority(b)||risk(a)-risk(b);
+ });
+ const docText=t=>String(t??"").replace(/[\u0000-\u001f]+/g," ").replace(/\s+/g," ").trim();
+ const setColor=(color)=>doc.setTextColor(...color);
+ const setFill=(color)=>doc.setFillColor(...color);
+ let y=TOP,page=0;
+ function newPage(){
+  if(page>0)doc.addPage();
+  page++;y=TOP;
+  setFill(navy);doc.rect(0,0,W,34,"F");
+  setFill(gold);doc.rect(0,34,W,1.1,"F");
+  doc.setFont("helvetica","bold");doc.setFontSize(7.8);setColor(gold);
+  doc.text("PHOENIX   /   PEOPLE INTELLIGENCE",LEFT,12);
+  doc.setFontSize(15);setColor([249,251,255]);
+  doc.text("JARVIS  /  DOSSIÊ EXECUTIVO",LEFT,25);
+  doc.setFont("helvetica","normal");doc.setFontSize(7.8);setColor(muted);
+  doc.text("JARVIS "+docText(report.version||"3.0")+"  ·  Análise exploratória / RH",LEFT,287);
+  doc.text("Página "+page,RIGHT,287,{align:"right"});
+  doc.setDrawColor(225,232,239);doc.line(LEFT,283,RIGHT,283);
  }
- function more(){doc.addPage();header();}
- function keep(h){if(y+h>BOTTOM)more();}
- function paragraph(value,options={}){
-  const str=String(value??"").replace(/[\u0000-\u001f]+/g," ").trim();
-  if(!str)return;
-  const font=options.font||9.1, lead=options.lead||4.45,x=options.x||LEFT+2,width=options.width||CONTENT-4;
-  const lines=doc.splitTextToSize(str,width);
-  const count=Math.max(1,lines.length);keep(Math.min(BOTTOM-y,count*lead+2,lead*3));
-  doc.setFont("helvetica",options.bold?"bold":"normal");doc.setFontSize(font);
-  rgb(options.color||ink);
-  for(const line of lines){keep(lead+1);doc.text(line,x,y);y+=lead;}
-  y+=options.after===undefined?3:options.after;
+ function keep(mm){if(y+mm>BOTTOM)newPage();}
+ function para(value,opts={}){
+  const txt=docText(value);if(!txt)return;
+  const size=opts.size||9.0,lead=opts.lead||4.6,indent=opts.indent===undefined?2:opts.indent;
+  const font=opts.bold?"bold":"normal",color=opts.color||ink,width=WIDTH-indent-2;
+  doc.setFont("helvetica",font);doc.setFontSize(size);
+  const pieces=doc.splitTextToSize(txt,width);
+  if(!pieces.length)return;
+  keep(Math.min(pieces.length,2)*lead+0.8);
+  for(const piece of pieces){
+   keep(lead+0.5);
+   doc.setFont("helvetica",font);doc.setFontSize(size);setColor(color);
+   doc.text(piece,LEFT+indent,y);y+=lead;
+  }
+  y+=opts.after===undefined?2.8:opts.after;
  }
- function title(text){
-  keep(18);fill(soft);doc.roundedRect(LEFT,y-4,CONTENT,10,2,2,"F");
-  rgb(blue);doc.setFont("helvetica","bold");doc.setFontSize(10);
-  doc.text(String(text),LEFT+4,y+2.4);y+=13;
+ function heading(txt){
+  keep(19);
+  setFill(soft);doc.roundedRect(LEFT,y-4,WIDTH,10,1.7,1.7,"F");
+  doc.setFont("helvetica","bold");doc.setFontSize(9.6);setColor(blue);
+  doc.text(docText(txt).toUpperCase(),LEFT+4,y+2.3);
+  y+=13;
  }
- function textSection(k,text,options={}){
-  if(text==null||text==="")return;
-  title(labels[k]?.[0]||k);
-  paragraph(text,options);
+ function item(value,opts={}){
+  if(!docText(value))return;
+  para("• "+docText(value),{size:opts.size||8.8,lead:opts.lead||4.45,indent:4,after:opts.after===undefined?1.6:opts.after});
  }
- function itemList(items,maxFont=8.7,leading=4.2){
-  if(!Array.isArray(items)||!items.length){paragraph("Nenhuma evidência registrada nesta origem.",{font:8.7});return;}
-  items.forEach((v,i)=>{
-   const t=String(v||"").replace(/[\u0000-\u001f]+/g," ").trim();
-   if(!t)return;const lines=doc.splitTextToSize((i+1)+". "+t,CONTENT-7);
-   // Não deixar número isolado no fim da página.
-   if(y+Math.min(lines.length,2)*leading+3>BOTTOM)more();
-   rgb(ink);doc.setFont("helvetica","normal");doc.setFontSize(maxFont);
-   lines.forEach(line=>{keep(leading+0.4);doc.text(line,LEFT+3,y);y+=leading;});
-   y+=2.2;
-  });
-  y+=1.5;
- }
- function listSection(k,data){
+ function list(title,data){
   if(!Array.isArray(data)||!data.length)return;
-  title(labels[k]?.[0]||k);itemList(data);
+  heading(title);
+  data.forEach(value=>item(value));
+  y+=2;
  }
- function compactColumns(titleText,entries){
-  if(!entries.length)return;
-  title(titleText);
-  const gap=9,colW=(CONTENT-gap)/2;
-  const groups=[entries.filter((_,i)=>i%2===0),entries.filter((_,i)=>i%2!==0)];
-  const startY=y;let heights=[];
-  for(let col=0;col<2;col++){
-   let yy=startY;const x=LEFT+col*(colW+gap);
-   for(const item of groups[col]){
-    const lines=doc.splitTextToSize(String(item),colW-7);
-    yy+=(lines.length*4.05+7);
-   }
-   heights[col]=yy-startY;
+ function textSection(title,value){
+  if(!docText(value))return;
+  heading(title);para(value);
+ }
+ function reviewerStatus(){
+  heading("CONCLUSÃO DO RECRUTADOR / REGISTRO HUMANO");
+  if(review?.verdict){
+   const label=humanVeredictLabels[review.verdict]||"Conclusão registrada pelo RH";
+   para(label,{bold:true,size:10,color:blue,after:1});
+   para("Parecer documentado pelo recrutador. A fundamentação integral consta adiante neste dossiê.",{size:8.2,color:muted,after:2});
+  }else{
+   para("PARECER FINAL DO RH AINDA NÃO REGISTRADO",{bold:true,size:10,color:[125,83,30],after:1});
+   para("A análise da IA reúne evidências profissionais, mas não aprova nem reprova candidatos. O responsável pela seleção deve registrar sua conclusão no ADM.",{size:8.2,color:muted});
   }
-  const needed=Math.max(...heights)+5;
-  if(needed>0&&y+needed>BOTTOM){more();}
-  const base=y;let yy=[];
-  for(let col=0;col<2;col++){
-   const x=LEFT+col*(colW+gap);let ry=base;
-   for(const item of groups[col]){
-    const lines=doc.splitTextToSize(String(item),colW-8);
-    fill(soft);doc.roundedRect(x,ry-3.5,colW,lines.length*4.05+6,1.5,1.5,"F");
-    rgb(ink);doc.setFont("helvetica","normal");doc.setFontSize(8.2);
-    lines.forEach((line,j)=>doc.text(line,x+3.5,ry+j*4.05+0.4));
-    ry+=lines.length*4.05+7.5;
-   }
-   yy.push(ry);
+ }
+ newPage();
+ // Abertura executiva: conclusão humana em destaque, depois achados essenciais, DISC em segundo plano.
+ doc.setFont("helvetica","bold");doc.setFontSize(13.5);setColor(navy);
+ const names=doc.splitTextToSize(docText(candidate?.full_name||"Candidato"),WIDTH);
+ for(const line of names){keep(6);doc.text(line,LEFT,y);y+=6;}
+ para("Vaga: "+docText(job?.title||"Não informada"),{size:9.0,color:muted,indent:0,after:5});
+ reviewerStatus();
+ heading("SINAIS RELEVANTES POR REQUISITO DA VAGA");
+ if(!ranked.length){
+  para("Esta avaliação ainda não possui uma matriz de requisitos profissionais. Consulte o parecer detalhado; nenhuma conclusão sobre aderência pode ser inferida.",{size:8.7});
+ }else{
+  ranked.forEach(row=>{
+   const label=requirementStateLabels[row.estado]||"Registro a esclarecer";
+   item(docText(row.title)+" — "+label,{size:8.6,lead:4.2,after:1});
+  });
+ }
+ // Texto analítico integral sem cortes artificiais. O fluxo quebra páginas apenas quando necessário.
+ textSection("Síntese das evidências da vaga",sections.resumo_evidencias_da_vaga||sections.resumo_executivo);
+ heading("DISC  /  DISTRIBUIÇÃO RELATIVA");
+ keep(45);
+ for(const factor of ["D","I","S","C"]){
+  const raw=Number(dims[factor]?.relative_share_percent||0);
+  const value=Number.isFinite(raw)?Math.min(100,Math.max(0,raw)):0;
+  doc.setFont("helvetica","bold");doc.setFontSize(8.8);setColor(blue);
+  doc.text(factor,LEFT+3,y+2);
+  setFill([226,235,245]);doc.roundedRect(LEFT+14,y-1,129,4,1,1,"F");
+  if(value>0){setFill(blue);doc.roundedRect(LEFT+14,y-1,129*value/100,4,1,1,"F");}
+  setColor(ink);doc.text(value.toFixed(1)+"%",RIGHT-2,y+2,{align:"right"});
+  y+=8.5;
+ }
+ const perc=["D","I","S","C"].map(f=>Number(dims[f]?.relative_share_percent||0));
+ const difference=Number.isFinite(Number(method.spread_pp))?Number(method.spread_pp):Math.max(...perc)-Math.min(...perc);
+ para(difference<=5?"Distribuição relativamente equilibrada; amplitude "+difference.toFixed(1)+" p.p. Sem predominância expressiva.":"Diferença entre fatores: "+difference.toFixed(1)+" p.p.; são preferências relativas, não competências profissionais.",{size:8.2,color:muted});
+ // Matriz completa: mantenha todos os fundamentos, origens e recomendações sem truncar.
+ if(ranked.length){
+  heading("MATRIZ COMPLETA / REQUISITOS PROFISSIONAIS");
+  for(const row of ranked){
+   keep(16);
+   para(docText(row.title)+"  ·  "+(requirementStateLabels[row.estado]||"Em investigação"),{bold:true,size:9.0,color:blue,after:1});
+   para("Registro: "+docText(row.fundamento||"Sem evidência registrada."),{size:8.65,lead:4.3,after:1});
+   para("Fonte: "+docText(row.origem||"não informada")+". Próxima verificação: "+docText(row.proxima_verificacao||"A definir pelo RH."),{size:8.45,lead:4.2,after:4});
   }
-  y=Math.max(...yy)+2;
  }
- const excerpt=(t,n)=>{const v=String(t??"").trim();if(v.length<=n)return v;return v.slice(0,n).replace(/\s+\S*$/,"")+"... (texto integral na ficha do RH)";};
- const selections=(arr,max,len=165)=>Array.isArray(arr)?arr.slice(0,max).map(x=>excerpt(x,len)):[];
- const sections=report?.sections||{};
- const dims=assessment?.result?.dimensions||{};
- const method=report?.method||{};
- header();
- // Page 1: perfil e síntese. O retrato só usa a identidade visual, não é fotografia do candidato.
- doc.setFont("helvetica","bold");doc.setFontSize(13);rgb(navy);
- const nameLines=doc.splitTextToSize(String(candidate.full_name||"Candidato"),126).slice(0,2);
- nameLines.forEach((txt,i)=>doc.text(txt,LEFT,y+i*5.6+1));
- y+=nameLines.length*5.6+2;
- paragraph("Vaga: "+(job?.title||"Não informada"),{font:9.2,width:125,after:6});
- const avatar=document.querySelector("#jrPanel .jrAvatar img");
- if(avatar?.complete&&avatar.naturalWidth>0){
-  try{doc.addImage(avatar,"JPEG",151,40,42,23);}catch{}
+ textSection("Resumo executivo completo",sections.resumo_executivo);
+ textSection("Leitura comportamental / limites DISC",sections.leitura_disc);
+ textSection("Histórico profissional declarado no currículo",sections.analise_curriculo);
+ textSection("Contexto operacional da vaga",sections.contexto_vaga);
+ list("CURRÍCULO / DECLARAÇÕES NÃO VERIFICADAS",sections.curriculo_declaracoes||report.sources?.resume_claims);
+ list("ENTREVISTA / RELATOS DO CANDIDATO",sections.entrevista_relato||report.sources?.interview_claims);
+ list("EXERCÍCIOS / OBSERVAÇÕES DO ENTREVISTADOR (NÃO AUDITADAS)",sections.observacoes_entrevistador||report.sources?.interviewer_observations);
+ if(!Array.isArray(sections.curriculo_declaracoes)&&!Array.isArray(sections.entrevista_relato)){
+  list("OUTROS INDÍCIOS / FONTE A INVESTIGAR",sections.evidencias_observadas);
  }
- title("MAPA DISC  /  PREFERÊNCIAS RELATIVAS");
- for(const letter of ["D","I","S","C"]){
-  const d=dims[letter]||{}, n=Math.max(0,Math.min(100,Number(d.relative_share_percent||0)));
-  doc.setFont("helvetica","bold");doc.setFontSize(9);rgb(blue);doc.text(letter,LEFT+2,y+3);
-  fill([231,239,247]);doc.roundedRect(LEFT+13,y-1,126,5,2,2,"F");
-  fill(blue);if(n>0)doc.roundedRect(LEFT+13,y-1,126*n/100,5,2,2,"F");
-  rgb(ink);doc.text(n.toFixed(1)+"%",RIGHT-2,y+3,{align:"right"});
-  y+=9.4;
- }
- const pts=["D","I","S","C"].map(d=>Number(dims[d]?.relative_share_percent||0));
- const spread=Number.isFinite(Number(method.spread_pp))?Number(method.spread_pp):(Math.max(...pts)-Math.min(...pts));
- if(spread<=5){
-  y+=1;fill([253,249,240]);doc.roundedRect(LEFT,y-3,CONTENT,10,2,2,"F");
-  rgb([114,84,34]);doc.setFontSize(9);doc.setFont("helvetica","bold");
-  doc.text("Distribuição equilibrada · diferença máxima: "+spread.toFixed(1)+" p.p.",LEFT+4,y+3);
-  y+=15;
- }else y+=9;
- textSection("resumo_executivo",excerpt(sections.resumo_executivo||report?.legacy,660));
- textSection("leitura_disc",excerpt(sections.leitura_disc,610));
- // Page 2: histórico e rastreabilidade.
- more();textSection("analise_curriculo",excerpt(sections.analise_curriculo||"Currículo não anexado.",640));
- textSection("contexto_vaga",excerpt(sections.contexto_vaga,420));
- const resumeClaims=sections.curriculo_declaracoes||report?.sources?.resume_claims||[];
- const interviewClaims=sections.entrevista_relato||report?.sources?.interview_claims||[];
- const observed=sections.observacoes_entrevistador||report?.sources?.interviewer_observations||[];
- const legacy=Array.isArray(sections.evidencias_observadas)?sections.evidencias_observadas:[];
- const cvHas=Array.isArray(resumeClaims)&&resumeClaims.length;
- const ivHas=Array.isArray(interviewClaims)&&interviewClaims.length;
- // Relatórios históricos seguem visíveis, mas não reclassificamos seus itens sem proveniência.
- title("MATRIZ DE RASTREABILIDADE  /  DECLARAÇÕES NÃO VERIFICADAS");
- if(cvHas){title("CURRÍCULO  /  NÃO VERIFICADO");itemList(selections(resumeClaims,observed.length?2:3,150),8.35,3.95);}
- if(ivHas){title("ENTREVISTA  /  RELATOS");itemList(selections(interviewClaims,observed.length?2:3,150),8.35,3.95);}
- if(Array.isArray(observed)&&observed.length){title("OBSERVAÇÃO DO ENTREVISTADOR  /  NÃO AUDITADA");itemList(selections(observed,2,160),8.25,3.9);}
- if(!cvHas&&!ivHas&&legacy.length){
-  title("INDÍCIOS RELATADOS  /  ORIGEM NÃO DISCRIMINADA");
-  itemList(selections(legacy,5,160),8.2,3.9);
- }
- // Página 3: síntese do que foi observado e plano de investigação.
- more();
- keep(20);fill([247,249,252]);doc.roundedRect(LEFT,y,CONTENT,13,2,2,"F");
- doc.setFont("helvetica","bold");doc.setFontSize(9);rgb(blue);
- doc.text("VERIFICAÇÃO INDEPENDENTE",LEFT+4,y+5);
- doc.setFont("helvetica","normal");doc.setFontSize(8.5);rgb(muted);
- doc.text(Array.isArray(observed)&&observed.length?"Há observação registrada; não houve verificação independente.":"Nenhum teste prático com registro observacional nesta avaliação.",LEFT+4,y+10.5);y+=18;
- const reqRows=Array.isArray(report?.requirements?.items)?report.requirements.items:[];
- if(reqRows.length){
-  title("REQUISITOS DA VAGA / SINAIS E LACUNAS");
-  itemList(reqRows.map(x=>x.title+" — "+(requirementStateLabels[x.estado]||"Pendente")+
-     ". "+String(x.fundamento||"").slice(0,85)).slice(0,5),8.1,3.9);
- }
+ textSection("VERIFICAÇÃO INDEPENDENTE",Array.isArray(report.sources?.verified_evidence)&&report.sources.verified_evidence.length?
+   report.sources.verified_evidence.join(" | "):
+   "Não consta verificação independente nesta ficha; registros de exercícios descritos pelo entrevistador não equivalem a auditoria dos resultados.");
+ list("PONTOS DE ATENÇÃO / O QUE INVESTIGAR",sections.pontos_a_confirmar);
+ list("PERGUNTAS PARA ENTREVISTA DE APROFUNDAMENTO",sections.perguntas_entrevista);
+ textSection("EXERCÍCIO PRÁTICO RECOMENDADO",sections.exercicio_pratico);
+ list("PRÓXIMAS AÇÕES DO RH",sections.proximos_passos);
  if(review?.verdict){
-  title("PARECER FINAL DO RECRUTADOR / DECISÃO HUMANA");
-  paragraph((humanVeredictLabels[review.verdict]||"Em análise")+". "+review.rationale,{font:8.6,lead:4.2});
+  heading("CONCLUSÃO HUMANA / FUNDAMENTAÇÃO INTEGRAL");
+  para(humanVeredictLabels[review.verdict]||"Parecer do RH",{bold:true,size:9.4,color:blue,after:2});
+  para(review.rationale);
+  if(review.created_at)para("Registro: "+new Date(review.created_at).toLocaleString("pt-BR"),{size:8,color:muted});
  }
- const smallerList=(key,max,size=135)=>{const list=selections(sections[key],max,size);if(list.length){title(labels[key]?.[0]||key);itemList(list,8.45,3.95);}};
- smallerList("pontos_a_confirmar",observed.length?2:3,125);
- smallerList("perguntas_entrevista",observed.length?3:4,125);
- textSection("exercicio_pratico",excerpt(sections.exercicio_pratico,225));
- smallerList("proximos_passos",2,130);
- textSection("nota_metodologica",excerpt(sections.nota_metodologica,175),{font:8.2,lead:4.0});
- const ending=["3.1","3.2","3.3"].includes(report?.version)?"JARVIS "+report.version+" · síntese de evidências; parecer final exclusivo do RH.":"Histórico V3.0 · análise integral disponível no ADM.";
- keep(13);doc.setFont("helvetica","italic");doc.setFontSize(8.5);rgb(muted);doc.text(ending,LEFT+2,y+3);
- doc.save("JARVIS_Dossie_"+String(candidate.id||"relatorio").slice(0,8)+".pdf");
+ textSection("METODOLOGIA E LIMITES",sections.nota_metodologica||
+  "O DISC autoral apresenta somente preferências relativas e não valida aptidão profissional. Este documento organiza evidências para análise humana.");
+ doc.save("JARVIS_Dossie_"+String(candidate?.id||"relatorio").slice(0,8)+".pdf");
 }
+
 function attach(args){
  const {candidate:c,assessment:a,job,previous,backend,db,msg,role}=args;
  const detail=$("ptDetail");if(!detail)return;
