@@ -180,9 +180,11 @@ function pdfReport(candidate,job,assessment,report){
  const method=report?.method||{};
  header();
  // Page 1: perfil e síntese. O retrato só usa a identidade visual, não é fotografia do candidato.
- doc.setFont("helvetica","bold");doc.setFontSize(14);rgb(navy);
- doc.text(String(candidate.full_name||"Candidato").slice(0,95),LEFT,y+1);
- y+=7;paragraph("Vaga: "+(job?.title||"Não informada"),{font:9.5,after:5});
+ doc.setFont("helvetica","bold");doc.setFontSize(13);rgb(navy);
+ const nameLines=doc.splitTextToSize(String(candidate.full_name||"Candidato"),126).slice(0,2);
+ nameLines.forEach((txt,i)=>doc.text(txt,LEFT,y+i*5.6+1));
+ y+=nameLines.length*5.6+2;
+ paragraph("Vaga: "+(job?.title||"Não informada"),{font:9.2,width:125,after:6});
  const avatar=document.querySelector("#jrPanel .jrAvatar img");
  if(avatar?.complete&&avatar.naturalWidth>0){
   try{doc.addImage(avatar,"JPEG",151,40,42,23);}catch{}
