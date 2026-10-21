@@ -79,9 +79,45 @@ function sectionMarkup(k,val){
  return "<section class='jrSection'><div class='jrSectionHead'><span class='jrSectionMark'></span><h4>"+htmlSafe(labels[k]?.[0]||k)+"</h4></div>"+
  (list?"<ul>"+val.map(x=>"<li>"+htmlSafe(x)+"</li>").join("")+"</ul>":"<p>"+htmlSafe(val)+"</p>")+"</section>";
 }
+
+const humanVeredictLabels={
+ em_analise:"Em análise pelo RH",
+ aderente:"Aderente aos requisitos avaliados",
+ aderente_com_ressalvas:"Aderente com ressalvas documentadas",
+ nao_aderente:"Não aderente aos requisitos avaliados"
+};
+const requirementStateLabels={
+ dificuldade_observada:"Dificuldade registrada em exercício",
+ dificuldade_relatada:"Dificuldade relatada",
+ execucao_favoravel_observada:"Execução favorável registrada",
+ somente_declarado:"Somente informações declaradas",
+ sem_registro:"Ainda não avaliado",
+ informacoes_divergentes:"Informações a esclarecer"
+};
+function requirementsMarkup(report){
+ const items=Array.isArray(report?.requirements?.items)?report.requirements.items:[];
+ if(!items.length)return "";
+ const problems=items.filter(x=>x.priority==="essencial"&&["dificuldade_observada","dificuldade_relatada"].includes(x.estado));
+ const notShown=items.filter(x=>x.priority==="essencial"&&["somente_declarado","sem_registro","informacoes_divergentes"].includes(x.estado));
+ const headline=problems.length
+  ?"Há registros de dificuldades relacionados a "+problems.length+" requisito(s) essencial(is): "+problems.map(x=>x.title).join("; ")+"."
+  :notShown.length?"Há "+notShown.length+" requisito(s) essencial(is) ainda sem demonstração prática conclusiva."
+  :"Há registros profissionais para os requisitos listados; a comprovação e a conclusão sobre a vaga exigem conferência do RH.";
+ return "<section class='jrRequirements' aria-labelledby='jrRequirementHeading'><div class='jrRequireTop'>"+
+ "<span class='jrKicker'>CRITÉRIOS PROFISSIONAIS DA VAGA</span><h4 id='jrRequirementHeading'>Parecer das evidências por requisito</h4>"+
+ "<p class='jrRequirementLead'>"+htmlSafe(headline)+"</p>"+
+ "<p class='jrRequirementDisclaimer'>O JARVIS organiza evidências e dificuldades por atividade da vaga. A decisão sobre aderência e continuidade é registrada exclusivamente pelo recrutador.</p></div>"+
+ "<div class='jrRequirementList'>"+items.map(x=>
+ "<article class='jrRequirementItem'><div class='jrRequirementRow'><h5>"+htmlSafe(x.title)+"</h5><span class='jrStateToken jrState-"+htmlSafe(x.estado)+"'>"+htmlSafe(requirementStateLabels[x.estado]||"Informações pendentes")+"</span></div>"+
+ "<p><b>Fundamento:</b> "+htmlSafe(x.fundamento||"Sem registro de evidência.")+"</p>"+
+ "<p><b>Origem:</b> "+htmlSafe(x.origem||"não informada")+"</p>"+
+ "<p><b>O que confirmar:</b> "+htmlSafe(x.proxima_verificacao||"Definir exercício ou entrevista de verificação.")+"</p></article>").join("")+
+ "</div></section>";
+}
+
 function reportMarkup(report){
  if(!report)return "<div class='jrEmpty'>Nenhuma análise gerada nesta ficha. Anexe o currículo, registre a entrevista e solicite uma leitura do JARVIS.</div>";
- if(report.legacy)return "<div class='jrLegacy'><b>Parecer da versão anterior</b><p>Gere uma nova análise JARVIS 3.1 para visualizar o relatório com fontes discriminadas e revisão humana.</p><pre>"+htmlSafe(report.legacy)+"</pre></div>";
+ if(report.legacy)return "<div class='jrLegacy'><b>Parecer da versão anterior</b><p>Gere uma nova análise JARVIS 3.3 para visualizar o relatório com fontes discriminadas e revisão humana.</p><pre>"+htmlSafe(report.legacy)+"</pre></div>";
  const obj=report.sections||{},meta=report.method||{};
  const spread=Number(meta.spread_pp);
  const balanced=meta.balanced===true&&Number.isFinite(spread);
@@ -90,12 +126,13 @@ function reportMarkup(report){
  "<div><b>ENTREVISTA</b><span>Relatos sujeitos a confirmação</span></div>"+
  "<div><b>OBSERVAÇÕES DO ENTREVISTADOR</b><span>"+(report?.sources?.interviewer_observations?.length?"Exercício registrado, sujeito a conferência":"Não registradas; sem comprovação independente")+"</span></div></div>";
  return "<div class='jrReportTop'><span>RELATÓRIO EXECUTIVO · JARVIS "+htmlSafe(report.version||"")+"</span><span>"+(report.resume_included?"Currículo incorporado":"Sem currículo")+"</span></div>"+
+  requirementsMarkup(report)+
   (balanced?"<p class='jrBalance'>Distribuição DISC relativamente equilibrada: diferença máxima de "+spread.toFixed(1)+" pontos percentuais. Não há predominância expressiva."+(meta.first_choice_tied?" As primeiras escolhas estão empatadas entre D, I, S e C.":"")+(ties?" Há empate entre os fatores da segunda maior pontuação.":"")+"</p>":"")+
   basis+
   Object.keys(labels).map(k=>sectionMarkup(k,obj[k])).join("");
 }
 
-function pdfReport(candidate,job,assessment,report){
+function pdfReport(candidate,job,assessment,report,review){
  if(!window.jspdf?.jsPDF)throw Error("Biblioteca de PDF indisponível.");
  const doc=new window.jspdf.jsPDF({format:"a4",unit:"mm",compress:true});
  const W=210,H=297,BOTTOM=278,LEFT=17,RIGHT=193,CONTENT=176;
@@ -248,6 +285,16 @@ function pdfReport(candidate,job,assessment,report){
  doc.text("VERIFICAÇÃO INDEPENDENTE",LEFT+4,y+5);
  doc.setFont("helvetica","normal");doc.setFontSize(8.5);rgb(muted);
  doc.text(Array.isArray(observed)&&observed.length?"Há observação registrada; não houve verificação independente.":"Nenhum teste prático com registro observacional nesta avaliação.",LEFT+4,y+10.5);y+=18;
+ const reqRows=Array.isArray(report?.requirements?.items)?report.requirements.items:[];
+ if(reqRows.length){
+  title("REQUISITOS DA VAGA / SINAIS E LACUNAS");
+  itemList(reqRows.map(x=>x.title+" — "+(requirementStateLabels[x.estado]||"Pendente")+
+     ". "+String(x.fundamento||"").slice(0,85)).slice(0,5),8.1,3.9);
+ }
+ if(review?.verdict){
+  title("PARECER FINAL DO RECRUTADOR / DECISÃO HUMANA");
+  paragraph((humanVeredictLabels[review.verdict]||"Em análise")+". "+review.rationale,{font:8.6,lead:4.2});
+ }
  const smallerList=(key,max,size=135)=>{const list=selections(sections[key],max,size);if(list.length){title(labels[key]?.[0]||key);itemList(list,8.45,3.95);}};
  smallerList("pontos_a_confirmar",observed.length?2:3,125);
  smallerList("perguntas_entrevista",observed.length?3:4,125);
@@ -264,10 +311,17 @@ function attach(args){
  const existing=$("jrPanel");if(existing)existing.remove();
  const panel=document.createElement("section");panel.id="jrPanel";panel.className="jrPanel";
  panel.dataset.candidate=c.id;
- panel.innerHTML="<div class='jrHero'><div class='jrAvatar'><img src='jarvis_avatar.jpg' alt='Identidade visual do agente JARVIS' onerror='this.style.display=\"none\"'></div><div class='jrHeroCopy'><span class='jrKicker'>PHOENIX TALENT · INTELIGÊNCIA DE RECRUTAMENTO</span><h3>JARVIS <small>3.2</small></h3><p>Leitura crítica do DISC, currículo e entrevista · análise para revisão humana</p></div><div class='jrOnline'>AGENTE DE APOIO AO RH</div></div>"+
+ panel.innerHTML="<div class='jrHero'><div class='jrAvatar'><img src='jarvis_avatar.jpg' alt='Identidade visual do agente JARVIS' onerror='this.style.display=\"none\"'></div><div class='jrHeroCopy'><span class='jrKicker'>PHOENIX TALENT · INTELIGÊNCIA DE RECRUTAMENTO</span><h3>JARVIS <small>3.3</small></h3><p>Leitura crítica do DISC, currículo e entrevista · análise para revisão humana</p></div><div class='jrOnline'>AGENTE DE APOIO AO RH</div></div>"+
  "<div class='jrControlGrid'><div class='jrDoc'><h4>Currículo profissional</h4><p>PDF, DOCX ou TXT, até 5 MB. A leitura local extrai texto; somente esse texto é salvo no RH, não o arquivo original.</p><input id='jrCVFile' type='file' accept='.pdf,.docx,.txt,application/pdf,text/plain,application/vnd.openxmlformats-officedocument.wordprocessingml.document' aria-label='Selecionar currículo do candidato'><p class='jrSaveState is-checking' id='jrCVStatus' role='status' aria-live='polite'>◌ Verificando currículo salvo no Supabase…</p><button class='ptBtn soft' id='jrCVSave' type='button'>Ler e anexar currículo</button></div>"+
  "<div class='jrRun'><h4>Parecer JARVIS</h4><p>Combine preferências declaradas, histórico profissional e evidências da entrevista. Sem notas de aprovação ou rejeição.</p><button class='ptBtn jrPrimary' id='jrGenerate' type='button'>✦ Gerar análise aprofundada</button><button class='ptBtn soft' id='jrPDF' type='button'>↓ Exportar PDF executivo</button><p id='jrStatus' role='status' aria-live='polite'></p><div id='jrThinking' class='jrThinking' role='status' aria-live='polite' hidden><div class='jrThinkingTop'><span class='jrOrb' aria-hidden='true'><span></span></span><div><strong>JARVIS em análise</strong><p id='jrThinkingText'>Preparando a leitura das informações disponíveis…</p></div></div><div class='jrThinkingTrack'><span class='jrThinkingPulse'></span></div><p class='jrThinkingHint'>Processamento pela IA. Aguarde a confirmação do parecer salvo; o tempo pode variar.</p></div></div></div>"+
- "<div class='jrReport' id='jrReport'></div>";
+ "<div class='jrReport' id='jrReport'></div>"+
+ "<section class='jrHumanReview' id='jrHumanReview'><span class='jrKicker'>REGISTRO HUMANO · RH PHOENIX</span><h4>Conclusão do recrutador sobre a vaga</h4>"+
+ "<p class='jrHumanNote'>O parecer do JARVIS não determina aprovação ou rejeição. Somente o responsável pela seleção pode registrar a conclusão com justificativa profissional.</p>"+
+ "<div id='jrHumanLatest' class='jrHumanLatest'>Consultando parecer anterior…</div>"+
+ "<div class='jrHumanGrid'><label>Conclusão do RH<select id='jrHumanStatus'><option value='em_analise'>Em análise</option><option value='aderente'>Aderente aos requisitos avaliados</option><option value='aderente_com_ressalvas'>Aderente com ressalvas</option><option value='nao_aderente'>Não aderente aos requisitos avaliados</option></select></label>"+
+ "<label>Fundamentação do recrutador<textarea id='jrHumanRationale' rows='4' maxlength='4000' placeholder='Documente evidências práticas, requisitos da vaga, pontos esclarecidos e razões para sua conclusão. Mínimo de 40 caracteres.'></textarea></label>"+
+ "<button id='jrHumanSave' class='ptBtn jrPrimary' type='button'>Registrar parecer do RH</button></div>"+
+ "<p id='jrHumanFeedback' role='status' aria-live='polite'></p></section>";
  detail.appendChild(panel);
  detail.classList.add("jrReady");
  let activeReport=parseReport(previous?.report_text||"");
@@ -388,7 +442,7 @@ function attach(args){
  });
  $("jrPDF").addEventListener("click",()=>{try{
   if(!activeReport)throw Error("Gere o relatório antes de exportar.");
-  pdfReport(c,job,a,activeReport);writeStatus("PDF executivo preparado.");
+  pdfReport(c,job,a,activeReport,currentReview);writeStatus("PDF executivo preparado.");
  }catch(e){writeStatus(String(e.message||e));}});
 }
 window.JarvisV3={mount:attach,parseReport,pdfReport,getResumeText,setInterviewStatus,setCVStatus};
