@@ -175,6 +175,8 @@ function pdfReport(candidate,job,assessment,report){
   }
   y=Math.max(...yy)+2;
  }
+ const excerpt=(t,n)=>{const v=String(t??"").trim();if(v.length<=n)return v;return v.slice(0,n).replace(/\s+\S*$/,"")+"... (texto integral na ficha do RH)";};
+ const selections=(arr,max,len=165)=>Array.isArray(arr)?arr.slice(0,max).map(x=>excerpt(x,len)):[];
  const sections=report?.sections||{};
  const dims=assessment?.result?.dimensions||{};
  const method=report?.method||{};
@@ -206,26 +208,23 @@ function pdfReport(candidate,job,assessment,report){
   doc.text("Distribuição equilibrada · diferença máxima: "+spread.toFixed(1)+" p.p.",LEFT+4,y+3);
   y+=15;
  }else y+=9;
- textSection("resumo_executivo",sections.resumo_executivo||report?.legacy);
- textSection("leitura_disc",sections.leitura_disc);
+ textSection("resumo_executivo",excerpt(sections.resumo_executivo||report?.legacy,660));
+ textSection("leitura_disc",excerpt(sections.leitura_disc,610));
  // Page 2: histórico e rastreabilidade.
- more();textSection("analise_curriculo",sections.analise_curriculo||"Currículo não anexado.");
- textSection("contexto_vaga",sections.contexto_vaga);
+ more();textSection("analise_curriculo",excerpt(sections.analise_curriculo||"Currículo não anexado.",640));
+ textSection("contexto_vaga",excerpt(sections.contexto_vaga,420));
  const resumeClaims=sections.curriculo_declaracoes||report?.sources?.resume_claims||[];
  const interviewClaims=sections.entrevista_relato||report?.sources?.interview_claims||[];
  const legacy=Array.isArray(sections.evidencias_observadas)?sections.evidencias_observadas:[];
  const cvHas=Array.isArray(resumeClaims)&&resumeClaims.length;
  const ivHas=Array.isArray(interviewClaims)&&interviewClaims.length;
  // Relatórios históricos seguem visíveis, mas não reclassificamos seus itens sem proveniência.
- title("MATRIZ DE RASTREABILIDADE  /  ORIGEM DA INFORMAÇÃO");
- compactColumns("DECLARAÇÕES E RELATOS",
-  [cvHas?"CURRÍCULO  ·  Alegações profissionais":"CURRÍCULO  ·  Sem itens separados nesta versão",
-   ivHas?"ENTREVISTA  ·  Relatos do candidato":"ENTREVISTA  ·  Sem itens separados nesta versão"]);
- if(cvHas){title("CURRÍCULO  /  NÃO VERIFICADO");itemList(resumeClaims.slice(0,6),8.4,4);}
- if(ivHas){title("ENTREVISTA  /  NÃO VERIFICADA");itemList(interviewClaims.slice(0,6),8.4,4);}
+ title("MATRIZ DE RASTREABILIDADE  /  DECLARAÇÕES NÃO VERIFICADAS");
+ if(cvHas){title("CURRÍCULO  /  NÃO VERIFICADO");itemList(selections(resumeClaims,3,150),8.35,3.95);}
+ if(ivHas){title("ENTREVISTA  /  NÃO VERIFICADA");itemList(selections(interviewClaims,3,150),8.35,3.95);}
  if(!cvHas&&!ivHas&&legacy.length){
   title("INDÍCIOS RELATADOS  /  ORIGEM NÃO DISCRIMINADA");
-  itemList(legacy.slice(0,8),8.2,3.9);
+  itemList(selections(legacy,5,160),8.2,3.9);
  }
  keep(20);fill([247,249,252]);doc.roundedRect(LEFT,y,CONTENT,13,2,2,"F");
  doc.setFont("helvetica","bold");doc.setFontSize(9);rgb(blue);
@@ -233,12 +232,14 @@ function pdfReport(candidate,job,assessment,report){
  doc.setFont("helvetica","normal");doc.setFontSize(8.5);rgb(muted);
  doc.text("Nenhum teste prático comprovado foi registrado nesta avaliação.",LEFT+4,y+10.5);y+=18;
  // Página 3: roteiro de decisão humana.
- more();listSection("pontos_a_confirmar",sections.pontos_a_confirmar);
- listSection("perguntas_entrevista",sections.perguntas_entrevista);
- textSection("exercicio_pratico",sections.exercicio_pratico);
- listSection("proximos_passos",sections.proximos_passos);
- textSection("nota_metodologica",sections.nota_metodologica,{font:8.2,lead:4.1});
- const ending=report?.version==="3.1"?"V3.1 · fontes separadas; sem conclusão automática.":"Histórico V3.0 · gerar nova análise para fontes separadas.";
+ more();
+ const smallerList=(key,max,size=135)=>{const list=selections(sections[key],max,size);if(list.length){title(labels[key]?.[0]||key);itemList(list,8.45,3.95);}};
+ smallerList("pontos_a_confirmar",4,155);
+ smallerList("perguntas_entrevista",6,150);
+ textSection("exercicio_pratico",excerpt(sections.exercicio_pratico,365));
+ smallerList("proximos_passos",4,155);
+ textSection("nota_metodologica",excerpt(sections.nota_metodologica,300),{font:8.2,lead:4.0});
+ const ending=report?.version==="3.1"?"Resumo de destaques · análise integral no ADM · revisão humana.":"Histórico V3.0 · análise integral disponível no ADM.";
  keep(13);doc.setFont("helvetica","italic");doc.setFontSize(8.5);rgb(muted);doc.text(ending,LEFT+2,y+3);
  doc.save("JARVIS_Dossie_"+String(candidate.id||"relatorio").slice(0,8)+".pdf");
 }
