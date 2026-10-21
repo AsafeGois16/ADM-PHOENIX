@@ -80,3 +80,34 @@
 @keyframes jarvisScan{0%{left:-35%}100%{left:105%}}
 @media(prefers-reduced-motion:reduce){#ptView .jrOrb,#ptView .jrThinkingPulse{animation:none}#ptView .jrThinkingPulse{left:35%}}
 @media(max-width:700px){#ptView .jrThinking{padding:13px}#ptView .jrOrb{width:43px;height:43px}}
+
+
+/* JARVIS 3.3 · Evidências profissionais e parecer final registrado pelo RH */
+#ptView .jrRequirements{margin:18px 0 20px;border:1px solid #d5e3f1;border-radius:17px;overflow:hidden;background:white;box-shadow:0 10px 32px rgba(17,43,74,.065)}
+#ptView .jrRequireTop{background:linear-gradient(130deg,#102c4d,#1c5486);padding:23px 25px;color:white}
+#ptView .jrRequireTop .jrKicker{color:#f2c77c}
+#ptView .jrRequireTop h4{font-size:20px;color:#fff;margin:9px 0 12px}
+#ptView .jrRequirementLead{font-weight:690;font-size:15px;line-height:1.57;margin:0 0 10px;color:#fff}
+#ptView .jrRequirementDisclaimer{font-size:11px;line-height:1.65;color:#d1e3f5;margin:0;max-width:790px}
+#ptView .jrRequirementList{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding:15px}
+#ptView .jrRequirementItem{border:1px solid #e1e9f2;border-radius:12px;padding:16px;background:#fbfdff;min-width:0}
+#ptView .jrRequirementRow{display:flex;flex-wrap:wrap;align-items:start;gap:10px;justify-content:space-between;margin-bottom:10px}
+#ptView .jrRequirementRow h5{font-size:13px;line-height:1.45;color:#244967;flex:1 1 160px;margin:0}
+#ptView .jrRequirementItem p{font-size:12px;color:#45647c;line-height:1.55;margin:6px 0;overflow-wrap:anywhere}
+#ptView .jrStateToken{display:inline-block;border-radius:99px;padding:5px 9px;font-size:10px;font-weight:700;max-width:100%;line-height:1.35}
+#ptView .jrState-dificuldade_observada,#ptView .jrState-informacoes_divergentes{background:#fff2ec;color:#994b2e}
+#ptView .jrState-dificuldade_relatada{background:#fff4e1;color:#8b5e17}
+#ptView .jrState-execucao_favoravel_observada{background:#edf7f3;color:#2a6e50}
+#ptView .jrState-somente_declarado,#ptView .jrState-sem_registro{background:#eef4fa;color:#426380}
+#ptView .jrHumanReview{margin:22px 0 6px;border:1px solid #cedbe9;border-radius:15px;background:white;padding:22px;box-shadow:0 8px 23px rgba(17,43,74,.045)}
+#ptView .jrHumanReview h4{font-size:20px;color:#184b79;margin:9px 0}
+#ptView .jrHumanNote{font-size:12px;line-height:1.6;color:#5f7590}
+#ptView .jrHumanLatest{padding:15px;border-radius:11px;background:#f1f6fb;border:1px solid #dbe7f3;margin:16px 0;color:#304c6b;font-size:13px;line-height:1.65;overflow-wrap:anywhere}
+#ptView .jrHumanLatest p{margin:9px 0;font-size:13px}
+#ptView .jrHumanLatest small{font-size:11px;color:#677d95}
+#ptView .jrHumanGrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);gap:12px;align-items:end}
+#ptView .jrHumanGrid label{font-size:12px;font-weight:700;color:#536f8a;display:flex;flex-direction:column;gap:8px;min-width:0}
+#ptView .jrHumanGrid textarea{min-height:106px;max-width:100%;width:100%;resize:vertical}
+#ptView #jrHumanSave{grid-column:1/-1;justify-self:start}
+#ptView #jrHumanFeedback{font-size:12px;color:#245986;line-height:1.5}
+@media(max-width:770px){#ptView .jrRequirementList,#ptView .jrHumanGrid{grid-template-columns:minmax(0,1fr)}#ptView .jrRequireTop{padding:18px}#ptView .jrHumanReview{padding:16px}}
