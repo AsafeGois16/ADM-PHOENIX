@@ -54,8 +54,8 @@ async function getResumeText(file){
 }
 function parseReport(input){
  if(!input)return null;
- if(typeof input==="object"&&input.version==="3.0")return input;
- try{const report=JSON.parse(input);if(report?.version==="3.0"&&report.sections)return report;}catch{}
+ if(typeof input==="object"&&["3.0","3.1"].includes(input.version))return input;
+ try{const report=JSON.parse(input);if(["3.0","3.1"].includes(report?.version)&&report.sections)return report;}catch{}
  return {legacy:String(input)};
 }
 function sectionMarkup(k,val){
@@ -66,60 +66,170 @@ function sectionMarkup(k,val){
 }
 function reportMarkup(report){
  if(!report)return "<div class='jrEmpty'>Nenhuma análise gerada nesta ficha. Anexe o currículo, registre a entrevista e solicite uma leitura do JARVIS.</div>";
- if(report.legacy)return "<div class='jrLegacy'><b>Parecer da versão anterior</b><p>Gere uma nova análise JARVIS 3.0 para visualizar o relatório em formato executivo.</p><pre>"+htmlSafe(report.legacy)+"</pre></div>";
+ if(report.legacy)return "<div class='jrLegacy'><b>Parecer da versão anterior</b><p>Gere uma nova análise JARVIS 3.1 para visualizar o relatório em formato executivo.</p><pre>"+htmlSafe(report.legacy)+"</pre></div>";
  const obj=report.sections||{},meta=report.method||{};
- return "<div class='jrReportTop'><span>RELATÓRIO EXECUTIVO · JARVIS 3.0</span><span>"+(report.resume_included?"Currículo incorporado":"Sem currículo")+"</span></div>"+
+ return "<div class='jrReportTop'><span>RELATÓRIO EXECUTIVO · JARVIS</span><span>"+(report.resume_included?"Currículo incorporado":"Sem currículo")+"</span></div>"+
   (meta.balanced?"<p class='jrBalance'>Distribuição DISC relativamente equilibrada; sem predominância expressiva.</p>":"")+
   Object.keys(labels).map(k=>sectionMarkup(k,obj[k])).join("");
 }
+
 function pdfReport(candidate,job,assessment,report){
- if(!window.jspdf?.jsPDF)throw Error("A biblioteca jsPDF do ADM não foi carregada.");
- const doc=new window.jspdf.jsPDF({format:"a4",unit:"mm"});const pageHeight=297,width=210;
- let y=18,page=1;
+ if(!window.jspdf?.jsPDF)throw Error("Biblioteca de PDF indisponível.");
+ const doc=new window.jspdf.jsPDF({format:"a4",unit:"mm",compress:true});
+ const W=210,H=297,BOTTOM=278,LEFT=17,RIGHT=193,CONTENT=176;
+ const navy=[11,28,53],blue=[32,86,139],gold=[201,147,63],ink=[38,58,82],muted=[107,125,148],soft=[242,247,252];
+ let y=0,page=0,contentStarted=false;
+ const rgb=(c)=>doc.setTextColor(...c);
+ const fill=(c)=>doc.setFillColor(...c);
+ const stroke=(c)=>doc.setDrawColor(...c);
+ const first=()=>page===1;
  function header(){
-  doc.setFillColor(11,27,53);doc.rect(0,0,width,39,"F");
-  doc.setFillColor(226,160,43);doc.rect(0,39,width,1.5,"F");
-  doc.setFont("helvetica","bold");doc.setFontSize(10);doc.setTextColor(231,174,71);doc.text("PHOENIX  /  PEOPLE INTELLIGENCE",15,16);
-  doc.setTextColor(255,255,255);doc.setFontSize(18);doc.text("JARVIS | Relatorio Executivo",15,28);
-  doc.setTextColor(36,58,84);doc.setFontSize(9);y=49;
+  page++;y=46;contentStarted=false;
+  fill(navy);doc.rect(0,0,W,36,"F");
+  fill(gold);doc.rect(0,36,W,1.2,"F");
+  rgb(gold);doc.setFont("helvetica","bold");doc.setFontSize(8.3);
+  doc.text("P H O E N I X   /   P E O P L E   I N T E L L I G E N C E",LEFT,13);
+  rgb([248,251,255]);doc.setFontSize(17);
+  doc.text("JARVIS  /  DOSSIÊ EXECUTIVO",LEFT,27);
+  rgb(muted);doc.setFontSize(8.2);
+  stroke([222,231,238]);doc.line(LEFT,285,RIGHT,285);
+  doc.text("Análise exploratória · DISC autoral não validado · revisão exclusiva do RH",LEFT,290);
+  doc.text("P. "+page,RIGHT,290,{align:"right"});
  }
- function footer(){
-  doc.setDrawColor(215,224,236);doc.line(15,284,195,284);
-  doc.setTextColor(111,126,148);doc.setFontSize(8);
-  doc.text("Instrumento exploratorio. Analise sujeita a verificacao humana.",15,289);
-  doc.text(String(page),194,289,{align:"right"});
+ function more(){doc.addPage();header();}
+ function keep(h){if(y+h>BOTTOM)more();}
+ function paragraph(value,options={}){
+  const str=String(value??"").replace(/[\u0000-\u001f]+/g," ").trim();
+  if(!str)return;
+  const font=options.font||9.1, lead=options.lead||4.45,x=options.x||LEFT+2,width=options.width||CONTENT-4;
+  const lines=doc.splitTextToSize(str,width);
+  const count=Math.max(1,lines.length);keep(Math.min(BOTTOM-y,count*lead+2,lead*3));
+  doc.setFont("helvetica",options.bold?"bold":"normal");doc.setFontSize(font);
+  rgb(options.color||ink);
+  for(const line of lines){keep(lead+1);doc.text(line,x,y);y+=lead;}
+  y+=options.after===undefined?3:options.after;
  }
- function nextIf(height){if(y+height>278){footer();doc.addPage();page++;header();}}
- function line(txt,indent=0,fontSize=10){
-  doc.setFontSize(fontSize);doc.setFont("helvetica","normal");doc.setTextColor(44,63,85);
-  const wrapped=doc.splitTextToSize(String(txt).replace(/[\u0000-\u001F]/g," "),172-indent);
-  for(const l of wrapped){nextIf(5.2);doc.text(l,17+indent,y);y+=5.2;}y+=2;
+ function title(text){
+  keep(18);fill(soft);doc.roundedRect(LEFT,y-4,CONTENT,10,2,2,"F");
+  rgb(blue);doc.setFont("helvetica","bold");doc.setFontSize(10);
+  doc.text(String(text),LEFT+4,y+2.4);y+=13;
  }
- function section(k,data){
-  if(data==null||data===""||(Array.isArray(data)&&!data.length))return;
-  nextIf(18);doc.setFillColor(243,247,252);doc.roundedRect(15,y-3,180,9,1.5,1.5,"F");
-  doc.setTextColor(23,70,117);doc.setFont("helvetica","bold");doc.setFontSize(11);
-  doc.text(labels[k]?.[0]||k,18,y+3);y+=14;
-  if(Array.isArray(data))data.forEach((item,i)=>{line((i+1)+". "+item,2,9.4);});
-  else line(data,0,9.6);y+=3;
+ function textSection(k,text,options={}){
+  if(text==null||text==="")return;
+  title(labels[k]?.[0]||k);
+  paragraph(text,options);
  }
- header();
- doc.setFontSize(11);doc.setFont("helvetica","bold");doc.setTextColor(29,54,83);
- doc.text(String(candidate.full_name||"Candidato").slice(0,80),15,y);y+=7;
- line("Vaga: "+(job?.title||"Nao informada"));y+=2;
+ function itemList(items,maxFont=8.7,leading=4.2){
+  if(!Array.isArray(items)||!items.length){paragraph("Nenhuma evidência registrada nesta origem.",{font:8.7});return;}
+  items.forEach((v,i)=>{
+   const t=String(v||"").replace(/[\u0000-\u001f]+/g," ").trim();
+   if(!t)return;const lines=doc.splitTextToSize((i+1)+". "+t,CONTENT-7);
+   // Não deixar número isolado no fim da página.
+   if(y+Math.min(lines.length,2)*leading+3>BOTTOM)more();
+   rgb(ink);doc.setFont("helvetica","normal");doc.setFontSize(maxFont);
+   lines.forEach(line=>{keep(leading+0.4);doc.text(line,LEFT+3,y);y+=leading;});
+   y+=2.2;
+  });
+  y+=1.5;
+ }
+ function listSection(k,data){
+  if(!Array.isArray(data)||!data.length)return;
+  title(labels[k]?.[0]||k);itemList(data);
+ }
+ function compactColumns(titleText,entries){
+  if(!entries.length)return;
+  title(titleText);
+  const gap=9,colW=(CONTENT-gap)/2;
+  const groups=[entries.filter((_,i)=>i%2===0),entries.filter((_,i)=>i%2!==0)];
+  const startY=y;let heights=[];
+  for(let col=0;col<2;col++){
+   let yy=startY;const x=LEFT+col*(colW+gap);
+   for(const item of groups[col]){
+    const lines=doc.splitTextToSize(String(item),colW-7);
+    yy+=(lines.length*4.05+7);
+   }
+   heights[col]=yy-startY;
+  }
+  const needed=Math.max(...heights)+5;
+  if(needed>0&&y+needed>BOTTOM){more();}
+  const base=y;let yy=[];
+  for(let col=0;col<2;col++){
+   const x=LEFT+col*(colW+gap);let ry=base;
+   for(const item of groups[col]){
+    const lines=doc.splitTextToSize(String(item),colW-8);
+    fill(soft);doc.roundedRect(x,ry-3.5,colW,lines.length*4.05+6,1.5,1.5,"F");
+    rgb(ink);doc.setFont("helvetica","normal");doc.setFontSize(8.2);
+    lines.forEach((line,j)=>doc.text(line,x+3.5,ry+j*4.05+0.4));
+    ry+=lines.length*4.05+7.5;
+   }
+   yy.push(ry);
+  }
+  y=Math.max(...yy)+2;
+ }
+ const sections=report?.sections||{};
  const dims=assessment?.result?.dimensions||{};
- doc.setFont("helvetica","bold");doc.setFontSize(10);doc.setTextColor(23,69,112);
- doc.text("DISTRIBUICAO RELATIVA DISC",16,y);y+=7;
- ["D","I","S","C"].forEach(letter=>{
-  const n=Number(dims[letter]?.relative_share_percent||0);
-  doc.setFontSize(9);doc.text(letter,17,y+3);doc.setFillColor(232,239,246);doc.roundedRect(27,y,128,5,1.4,1.4,"F");
-  doc.setFillColor(38,109,169);doc.roundedRect(27,y,Math.min(128,n*1.28),5,1.4,1.4,"F");
-  doc.text(n.toFixed(1)+"%",160,y+4);y+=9;
- });
- y+=7;
- if(report?.legacy){section("resumo_executivo",report.legacy);}
- else for(const k of Object.keys(labels))section(k,report?.sections?.[k]);
- footer();doc.save("JARVIS_Phoenix_"+String(candidate.id||"relatorio").slice(0,8)+".pdf");
+ const method=report?.method||{};
+ header();
+ // Page 1: perfil e síntese. O retrato só usa a identidade visual, não é fotografia do candidato.
+ doc.setFont("helvetica","bold");doc.setFontSize(14);rgb(navy);
+ doc.text(String(candidate.full_name||"Candidato").slice(0,95),LEFT,y+1);
+ y+=7;paragraph("Vaga: "+(job?.title||"Não informada"),{font:9.5,after:5});
+ const avatar=document.querySelector("#jrPanel .jrAvatar img");
+ if(avatar?.complete&&avatar.naturalWidth>0){
+  try{doc.addImage(avatar,"JPEG",151,40,42,23);}catch{}
+ }
+ title("MAPA DISC  /  PREFERÊNCIAS RELATIVAS");
+ for(const letter of ["D","I","S","C"]){
+  const d=dims[letter]||{}, n=Math.max(0,Math.min(100,Number(d.relative_share_percent||0)));
+  doc.setFont("helvetica","bold");doc.setFontSize(9);rgb(blue);doc.text(letter,LEFT+2,y+3);
+  fill([231,239,247]);doc.roundedRect(LEFT+13,y-1,126,5,2,2,"F");
+  fill(blue);if(n>0)doc.roundedRect(LEFT+13,y-1,126*n/100,5,2,2,"F");
+  rgb(ink);doc.text(n.toFixed(1)+"%",RIGHT-2,y+3,{align:"right"});
+  y+=9.4;
+ }
+ const pts=["D","I","S","C"].map(d=>Number(dims[d]?.relative_share_percent||0));
+ const spread=Number.isFinite(Number(method.spread_pp))?Number(method.spread_pp):(Math.max(...pts)-Math.min(...pts));
+ if(spread<=5){
+  y+=1;fill([253,249,240]);doc.roundedRect(LEFT,y-3,CONTENT,10,2,2,"F");
+  rgb([114,84,34]);doc.setFontSize(9);doc.setFont("helvetica","bold");
+  doc.text("Distribuição equilibrada · diferença máxima: "+spread.toFixed(1)+" p.p.",LEFT+4,y+3);
+  y+=15;
+ }else y+=9;
+ textSection("resumo_executivo",sections.resumo_executivo||report?.legacy);
+ textSection("leitura_disc",sections.leitura_disc);
+ // Page 2: histórico e rastreabilidade.
+ more();textSection("analise_curriculo",sections.analise_curriculo||"Currículo não anexado.");
+ textSection("contexto_vaga",sections.contexto_vaga);
+ const resumeClaims=sections.curriculo_declaracoes||report?.sources?.resume_claims||[];
+ const interviewClaims=sections.entrevista_relato||report?.sources?.interview_claims||[];
+ const legacy=Array.isArray(sections.evidencias_observadas)?sections.evidencias_observadas:[];
+ const cvHas=Array.isArray(resumeClaims)&&resumeClaims.length;
+ const ivHas=Array.isArray(interviewClaims)&&interviewClaims.length;
+ // Relatórios históricos seguem visíveis, mas não reclassificamos seus itens sem proveniência.
+ title("MATRIZ DE RASTREABILIDADE  /  ORIGEM DA INFORMAÇÃO");
+ compactColumns("DECLARAÇÕES E RELATOS",
+  [cvHas?"CURRÍCULO  ·  Alegações profissionais":"CURRÍCULO  ·  Sem itens separados nesta versão",
+   ivHas?"ENTREVISTA  ·  Relatos do candidato":"ENTREVISTA  ·  Sem itens separados nesta versão"]);
+ if(cvHas){title("CURRÍCULO  /  NÃO VERIFICADO");itemList(resumeClaims.slice(0,6),8.4,4);}
+ if(ivHas){title("ENTREVISTA  /  NÃO VERIFICADA");itemList(interviewClaims.slice(0,6),8.4,4);}
+ if(!cvHas&&!ivHas&&legacy.length){
+  title("INDÍCIOS RELATADOS  /  ORIGEM NÃO DISCRIMINADA");
+  itemList(legacy.slice(0,8),8.2,3.9);
+ }
+ keep(20);fill([247,249,252]);doc.roundedRect(LEFT,y,CONTENT,13,2,2,"F");
+ doc.setFont("helvetica","bold");doc.setFontSize(9);rgb(blue);
+ doc.text("VERIFICAÇÃO INDEPENDENTE",LEFT+4,y+5);
+ doc.setFont("helvetica","normal");doc.setFontSize(8.5);rgb(muted);
+ doc.text("Nenhum teste prático comprovado foi registrado nesta avaliação.",LEFT+4,y+10.5);y+=18;
+ // Página 3: roteiro de decisão humana.
+ more();listSection("pontos_a_confirmar",sections.pontos_a_confirmar);
+ listSection("perguntas_entrevista",sections.perguntas_entrevista);
+ textSection("exercicio_pratico",sections.exercicio_pratico);
+ listSection("proximos_passos",sections.proximos_passos);
+ textSection("nota_metodologica",sections.nota_metodologica,{font:8.2,lead:4.1});
+ const ending=report?.version==="3.1"?"V3.1 · fontes separadas; sem conclusão automática.":"Histórico V3.0 · gerar nova análise para fontes separadas.";
+ keep(13);doc.setFont("helvetica","italic");doc.setFontSize(8.5);rgb(muted);doc.text(ending,LEFT+2,y+3);
+ doc.save("JARVIS_Dossie_"+String(candidate.id||"relatorio").slice(0,8)+".pdf");
 }
 function attach(args){
  const {candidate:c,assessment:a,job,previous,backend,db,msg,role}=args;
