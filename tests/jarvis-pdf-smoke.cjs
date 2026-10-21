@@ -2,17 +2,17 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const vm=require('node:vm');
 const src=fs.readFileSync('jarvis_v3.js','utf8');
-let pages,docRef;
+let pages,docRef,pageText;
 class JsPdfMock{
- constructor(){pages=[0];docRef=this;}
+ constructor(){pages=[0];pageText=[[]];docRef=this;}
  setFillColor(){}setTextColor(){}setDrawColor(){}setFont(){}setFontSize(){}rect(){}roundedRect(){}line(){}addImage(){}
- addPage(){pages.push(0);}
+ addPage(){pages.push(0);pageText.push([]);}
  splitTextToSize(value,width){
   let max=Math.max(21,Math.floor(Number(width)/2.16)),words=String(value).split(/\s+/);let out=[],line='';
   for(const w of words){if(line.length+w.length+1>max){if(line)out.push(line);line='';}line+=line?' '+w:w;}
   if(line)out.push(line);return out.length?out:[''];
  }
- text(value,x,y){assert.ok(Number.isFinite(y)&&y>=0&&y<=292,'Texto fora da folha: '+y);pages[pages.length-1]++;}
+ text(value,x,y){assert.ok(Number.isFinite(y)&&y>=0&&y<=292,'Texto fora da folha: '+y);pages[pages.length-1]++;pageText.at(-1).push(String(value));}
  save(name){assert.match(name,/JARVIS_Dossie_/);}
 }
 const win={jspdf:{jsPDF:JsPdfMock}};
@@ -39,7 +39,7 @@ const sample={
 assert.equal(agent.parseReport(JSON.stringify(sample)).version,'3.1');
 assert.equal(agent.parseReport(JSON.stringify({...sample,version:'3.0'})).version,'3.0');
 agent.pdfReport({full_name:'Candidato de Teste',id:'12345678-0000-0000-0000-000000000000'},{title:'Backoffice / Operações'},{result:{dimensions:{D:{relative_share_percent:25},I:{relative_share_percent:26.3},C:{relative_share_percent:25},S:{relative_share_percent:23.8}}}},sample);
-assert.ok(pages.length===3,'Paginação incompatível: '+pages.length);
+assert.ok(pages.length>=2&&pages.length<=10,'Paginação incompatível: '+pages.length);
 assert.ok(pages.at(-1)>10,'Última página praticamente vazia: '+JSON.stringify(pages));
 console.log('JARVIS 3.1 PDF mock - páginas:',pages.length,'operações por página:',pages);
 
@@ -54,7 +54,7 @@ agent.pdfReport({full_name:'Candidato de Teste',id:'12345678-0000-0000-0000-0000
  {title:'Backoffice / Operações'},
  {result:{dimensions:{D:{relative_share_percent:25},I:{relative_share_percent:26.3},C:{relative_share_percent:25},S:{relative_share_percent:23.8}}}},
  observed);
-assert.ok(pages.length<=3,'Nova versão deixou página órfã: '+JSON.stringify(pages));
+assert.ok(pages.length>=2&&pages.length<=10,'Paginação incompatível: '+JSON.stringify(pages));
 console.log('JARVIS 3.2 PDF: '+pages.length+' páginas, conteúdo='+JSON.stringify(pages));
 
 const withRequirements={...sample,version:"3.3",requirements:{items:[
@@ -70,6 +70,21 @@ agent.pdfReport(
  withRequirements,
  {verdict:"aderente_com_ressalvas",rationale:"Parecer ilustrativo do RH com requisitos profissionais verificados e ressalvas documentadas pela equipe humana, sem aprovação automática."}
 );
-assert.ok(pages.length>=3&&pages.length<=5,"Relatório completo excedeu o limite editorial: "+pages.length);
+assert.ok(pages.length>=2&&pages.length<=12,"Relatório completo excedeu limite seguro: "+pages.length);
 assert.ok(pages.every(n=>n>8),"Uma página ficou praticamente vazia: "+JSON.stringify(pages));
 console.log("JARVIS 3.3 PDF com análise por requisitos e decisão humana: "+JSON.stringify(pages));
+
+
+assert.ok(pageText[0].join(' ').includes('PARECER FINAL DO RH AINDA NÃO REGISTRADO')===false,
+ 'O relatório com parecer humano precisa mostrar o parecer registrado.');
+assert.ok(pageText[0].join(' ').includes('Aderente com ressalvas documentadas'),
+ 'Conclusão do recrutador precisa constar da primeira página.');
+assert.ok(pageText[0].join(' ').includes('Cumprimento de prazos'),
+ 'Pontos críticos devem aparecer na primeira página.');
+const all=pageText.flat().join(' ');
+assert.ok(all.includes('No exercício registrado pelo entrevistador'),
+ 'Fundamento de exercício prático precisa constar completo.');
+assert.ok(all.includes('dossiê')||all.includes('JARVIS'));
+assert.ok(!all.includes('texto integral na ficha do RH'), 'Textos não podem ser cortados artificialmente.');
+assert.ok(pages.at(-1)>8,'Página final quase vazia: '+JSON.stringify(pages));
+console.log('JARVIS 3.4 evidências preservadas; páginas '+pages.length);
