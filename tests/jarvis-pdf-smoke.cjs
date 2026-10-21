@@ -42,3 +42,17 @@ agent.pdfReport({full_name:'Candidato de Teste',id:'12345678-0000-0000-0000-0000
 assert.ok(pages.length===3,'Paginação incompatível: '+pages.length);
 assert.ok(pages.at(-1)>10,'Última página praticamente vazia: '+JSON.stringify(pages));
 console.log('JARVIS 3.1 PDF mock - páginas:',pages.length,'operações por página:',pages);
+
+const observed={...sample,version:"3.2",sections:{...sample.sections,
+ observacoes_entrevistador:[
+  "OBSERVADO / No exercício de cinco demandas, o entrevistador registrou que duas foram priorizadas corretamente; registro não auditado.",
+  "OBSERVADO / Na simulação de Excel, o candidato não concluiu a fórmula de busca no tempo previsto; registro não auditado."
+ ]
+},sources:{interviewer_observations:["OBSERVADO / exercício relatado pelo entrevistador"]}};
+assert.equal(agent.parseReport(JSON.stringify(observed)).version,'3.2');
+agent.pdfReport({full_name:'Candidato de Teste',id:'12345678-0000-0000-0000-000000000000'},
+ {title:'Backoffice / Operações'},
+ {result:{dimensions:{D:{relative_share_percent:25},I:{relative_share_percent:26.3},C:{relative_share_percent:25},S:{relative_share_percent:23.8}}}},
+ observed);
+assert.ok(pages.length<=3,'Nova versão deixou página órfã: '+JSON.stringify(pages));
+console.log('JARVIS 3.2 PDF: '+pages.length+' páginas, conteúdo='+JSON.stringify(pages));

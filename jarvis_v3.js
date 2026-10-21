@@ -10,6 +10,7 @@ const labels={
  analise_curriculo:["Leitura profissional do currículo","file-user"],
  curriculo_declaracoes:["Currículo · informações declaradas","file-check-2"],
  entrevista_relato:["Entrevista · experiências relatadas","messages-square"],
+ observacoes_entrevistador:["Observações registradas pelo entrevistador","clipboard-check"],
  contexto_vaga:["Contexto operacional da vaga","briefcase-business"],
  evidencias_observadas:["Relatos e evidências disponíveis","check-circle-2"],
  pontos_a_confirmar:["Pontos a confirmar","circle-help"],
@@ -19,6 +20,18 @@ const labels={
  nota_metodologica:["Critérios e limites","shield-check"]
 };
 const loaded=new Map();
+function setInterviewStatus(state,message){
+ const el=$("ptInterviewState");if(!el)return;
+ el.className="jrSaveState is-"+state;
+ const ico=el.querySelector(".jrStateIcon");
+ if(ico)ico.textContent={checking:"◌",missing:"○",saved:"✓",draft:"●",saving:"◌",error:"!"}[state]||"○";
+ const text=$("ptInterviewStateText");if(text)text.textContent=message;
+}
+function setCVStatus(state,message){
+ const el=$("jrCVStatus");if(!el)return;
+ el.className="jrSaveState is-"+state;
+ el.textContent=message;
+}
 async function scriptOnce(url,globalName){
  if(window[globalName])return window[globalName];
  if(!loaded.has(globalName))loaded.set(globalName,new Promise((resolve,reject)=>{
@@ -56,8 +69,8 @@ async function getResumeText(file){
 }
 function parseReport(input){
  if(!input)return null;
- if(typeof input==="object"&&["3.0","3.1"].includes(input.version))return input;
- try{const report=JSON.parse(input);if(["3.0","3.1"].includes(report?.version)&&report.sections)return report;}catch{}
+ if(typeof input==="object"&&["3.0","3.1","3.2"].includes(input.version))return input;
+ try{const report=JSON.parse(input);if(["3.0","3.1","3.2"].includes(report?.version)&&report.sections)return report;}catch{}
  return {legacy:String(input)};
 }
 function sectionMarkup(k,val){
@@ -75,7 +88,7 @@ function reportMarkup(report){
  const ties=Array.isArray(meta.runner_up_factors)&&meta.runner_up_factors.length>1;
  const basis="<div class='jrSourceMatrix'><div><b>CURRÍCULO</b><span>"+(report.resume_included?"Declarações profissionais, não auditadas":"Não incluído")+"</span></div>"+
  "<div><b>ENTREVISTA</b><span>Relatos sujeitos a confirmação</span></div>"+
- "<div><b>VERIFICAÇÃO PRÁTICA</b><span>Nenhuma registrada nesta avaliação</span></div></div>";
+ "<div><b>OBSERVAÇÕES DO ENTREVISTADOR</b><span>"+(report?.sources?.interviewer_observations?.length?"Exercício registrado, sujeito a conferência":"Não registradas; sem comprovação independente")+"</span></div></div>";
  return "<div class='jrReportTop'><span>RELATÓRIO EXECUTIVO · JARVIS "+htmlSafe(report.version||"")+"</span><span>"+(report.resume_included?"Currículo incorporado":"Sem currículo")+"</span></div>"+
   (balanced?"<p class='jrBalance'>Distribuição DISC relativamente equilibrada: diferença máxima de "+spread.toFixed(1)+" pontos percentuais. Não há predominância expressiva."+(meta.first_choice_tied?" As primeiras escolhas estão empatadas entre D, I, S e C.":"")+(ties?" Há empate entre os fatores da segunda maior pontuação.":"")+"</p>":"")+
   basis+
@@ -215,30 +228,32 @@ function pdfReport(candidate,job,assessment,report){
  textSection("contexto_vaga",excerpt(sections.contexto_vaga,420));
  const resumeClaims=sections.curriculo_declaracoes||report?.sources?.resume_claims||[];
  const interviewClaims=sections.entrevista_relato||report?.sources?.interview_claims||[];
+ const observed=sections.observacoes_entrevistador||report?.sources?.interviewer_observations||[];
  const legacy=Array.isArray(sections.evidencias_observadas)?sections.evidencias_observadas:[];
  const cvHas=Array.isArray(resumeClaims)&&resumeClaims.length;
  const ivHas=Array.isArray(interviewClaims)&&interviewClaims.length;
  // Relatórios históricos seguem visíveis, mas não reclassificamos seus itens sem proveniência.
  title("MATRIZ DE RASTREABILIDADE  /  DECLARAÇÕES NÃO VERIFICADAS");
- if(cvHas){title("CURRÍCULO  /  NÃO VERIFICADO");itemList(selections(resumeClaims,3,150),8.35,3.95);}
- if(ivHas){title("ENTREVISTA  /  NÃO VERIFICADA");itemList(selections(interviewClaims,3,150),8.35,3.95);}
+ if(cvHas){title("CURRÍCULO  /  NÃO VERIFICADO");itemList(selections(resumeClaims,observed.length?2:3,150),8.35,3.95);}
+ if(ivHas){title("ENTREVISTA  /  RELATOS");itemList(selections(interviewClaims,observed.length?2:3,150),8.35,3.95);}
+ if(Array.isArray(observed)&&observed.length){title("OBSERVAÇÃO DO ENTREVISTADOR  /  NÃO AUDITADA");itemList(selections(observed,2,160),8.25,3.9);}
  if(!cvHas&&!ivHas&&legacy.length){
   title("INDÍCIOS RELATADOS  /  ORIGEM NÃO DISCRIMINADA");
   itemList(selections(legacy,5,160),8.2,3.9);
  }
+ // Página 3: síntese do que foi observado e plano de investigação.
+ more();
  keep(20);fill([247,249,252]);doc.roundedRect(LEFT,y,CONTENT,13,2,2,"F");
  doc.setFont("helvetica","bold");doc.setFontSize(9);rgb(blue);
  doc.text("VERIFICAÇÃO INDEPENDENTE",LEFT+4,y+5);
  doc.setFont("helvetica","normal");doc.setFontSize(8.5);rgb(muted);
- doc.text("Nenhum teste prático comprovado foi registrado nesta avaliação.",LEFT+4,y+10.5);y+=18;
- // Página 3: roteiro de decisão humana.
- more();
+ doc.text(Array.isArray(observed)&&observed.length?"Há observação registrada; não houve verificação independente.":"Nenhum teste prático com registro observacional nesta avaliação.",LEFT+4,y+10.5);y+=18;
  const smallerList=(key,max,size=135)=>{const list=selections(sections[key],max,size);if(list.length){title(labels[key]?.[0]||key);itemList(list,8.45,3.95);}};
- smallerList("pontos_a_confirmar",3,140);
- smallerList("perguntas_entrevista",5,140);
- textSection("exercicio_pratico",excerpt(sections.exercicio_pratico,280));
- smallerList("proximos_passos",3,140);
- textSection("nota_metodologica",excerpt(sections.nota_metodologica,220),{font:8.2,lead:4.0});
+ smallerList("pontos_a_confirmar",observed.length?2:3,125);
+ smallerList("perguntas_entrevista",observed.length?3:4,125);
+ textSection("exercicio_pratico",excerpt(sections.exercicio_pratico,225));
+ smallerList("proximos_passos",2,130);
+ textSection("nota_metodologica",excerpt(sections.nota_metodologica,175),{font:8.2,lead:4.0});
  const ending=report?.version==="3.1"?"Resumo de destaques · análise integral no ADM · revisão humana.":"Histórico V3.0 · análise integral disponível no ADM.";
  keep(13);doc.setFont("helvetica","italic");doc.setFontSize(8.5);rgb(muted);doc.text(ending,LEFT+2,y+3);
  doc.save("JARVIS_Dossie_"+String(candidate.id||"relatorio").slice(0,8)+".pdf");
@@ -249,9 +264,9 @@ function attach(args){
  const existing=$("jrPanel");if(existing)existing.remove();
  const panel=document.createElement("section");panel.id="jrPanel";panel.className="jrPanel";
  panel.dataset.candidate=c.id;
- panel.innerHTML="<div class='jrHero'><div class='jrAvatar'><img src='jarvis_avatar.jpg' alt='Identidade visual do agente JARVIS' onerror='this.style.display=\"none\"'></div><div class='jrHeroCopy'><span class='jrKicker'>PHOENIX TALENT · INTELIGÊNCIA DE RECRUTAMENTO</span><h3>JARVIS <small>3.0</small></h3><p>Leitura crítica do DISC, currículo e entrevista · análise para revisão humana</p></div><div class='jrOnline'>AGENTE DE APOIO AO RH</div></div>"+
- "<div class='jrControlGrid'><div class='jrDoc'><h4>Currículo profissional</h4><p>PDF, DOCX ou TXT, até 5 MB. A leitura local extrai texto e armazena apenas o conteúdo textual, restrito ao RH.</p><input id='jrCVFile' type='file' accept='.pdf,.docx,.txt,application/pdf,text/plain,application/vnd.openxmlformats-officedocument.wordprocessingml.document' aria-label='Selecionar currículo do candidato'><p class='jrFileStatus' id='jrCVStatus'>Verificando currículo…</p><button class='ptBtn soft' id='jrCVSave' type='button'>Ler e anexar currículo</button></div>"+
- "<div class='jrRun'><h4>Parecer JARVIS</h4><p>Combine preferências declaradas, histórico profissional e evidências da entrevista. Sem notas de aprovação ou rejeição.</p><button class='ptBtn jrPrimary' id='jrGenerate' type='button'>✦ Gerar análise aprofundada</button><button class='ptBtn soft' id='jrPDF' type='button'>↓ Exportar PDF executivo</button><p id='jrStatus' role='status' aria-live='polite'></p></div></div>"+
+ panel.innerHTML="<div class='jrHero'><div class='jrAvatar'><img src='jarvis_avatar.jpg' alt='Identidade visual do agente JARVIS' onerror='this.style.display=\"none\"'></div><div class='jrHeroCopy'><span class='jrKicker'>PHOENIX TALENT · INTELIGÊNCIA DE RECRUTAMENTO</span><h3>JARVIS <small>3.2</small></h3><p>Leitura crítica do DISC, currículo e entrevista · análise para revisão humana</p></div><div class='jrOnline'>AGENTE DE APOIO AO RH</div></div>"+
+ "<div class='jrControlGrid'><div class='jrDoc'><h4>Currículo profissional</h4><p>PDF, DOCX ou TXT, até 5 MB. A leitura local extrai texto; somente esse texto é salvo no RH, não o arquivo original.</p><input id='jrCVFile' type='file' accept='.pdf,.docx,.txt,application/pdf,text/plain,application/vnd.openxmlformats-officedocument.wordprocessingml.document' aria-label='Selecionar currículo do candidato'><p class='jrSaveState is-checking' id='jrCVStatus' role='status' aria-live='polite'>◌ Verificando currículo salvo no Supabase…</p><button class='ptBtn soft' id='jrCVSave' type='button'>Ler e anexar currículo</button></div>"+
+ "<div class='jrRun'><h4>Parecer JARVIS</h4><p>Combine preferências declaradas, histórico profissional e evidências da entrevista. Sem notas de aprovação ou rejeição.</p><button class='ptBtn jrPrimary' id='jrGenerate' type='button'>✦ Gerar análise aprofundada</button><button class='ptBtn soft' id='jrPDF' type='button'>↓ Exportar PDF executivo</button><p id='jrStatus' role='status' aria-live='polite'></p><div id='jrThinking' class='jrThinking' role='status' aria-live='polite' hidden><div class='jrThinkingTop'><span class='jrOrb' aria-hidden='true'><span></span></span><div><strong>JARVIS em análise</strong><p id='jrThinkingText'>Preparando a leitura das informações disponíveis…</p></div></div><div class='jrThinkingTrack'><span class='jrThinkingPulse'></span></div><p class='jrThinkingHint'>Processamento pela IA. Aguarde a confirmação do parecer salvo; o tempo pode variar.</p></div></div></div>"+
  "<div class='jrReport' id='jrReport'></div>";
  detail.appendChild(panel);
  detail.classList.add("jrReady");
@@ -259,46 +274,122 @@ function attach(args){
  const reportEl=$("jrReport");
  reportEl.innerHTML=reportMarkup(activeReport);
  const writeStatus=text=>{if($("jrStatus"))$("jrStatus").textContent=text;msg(text);};
+
  const noEdit=role==="viewer";
- $("jrCVSave").disabled=noEdit;$("jrGenerate").disabled=noEdit||!a;$("jrPDF").disabled=!a;
+ const notesArea=$("ptEvidence"), cvInput=$("jrCVFile");
+ let pickedNewFile=false,hasSavedCV=false,ticker=null;
+ $("jrCVSave").disabled=noEdit;$("jrGenerate").disabled=true;$("jrPDF").disabled=!a;
  async function loadResume(){
   try{
-   const r=await db().from("phoenix_talent_resumes").select("filename,uploaded_at").eq("candidate_id",c.id).maybeSingle();
-   if(panel.isConnected===false)return;
-   $("jrCVStatus").textContent=r.error?"Não foi possível consultar o currículo.":r.data?"Currículo registrado: "+r.data.filename+" · "+new Date(r.data.uploaded_at).toLocaleDateString("pt-BR"):"Nenhum currículo anexado até agora.";
-  }catch{$("jrCVStatus").textContent="Currículo não consultado.";}
+   const r=await db().from("phoenix_talent_resumes").select("filename,uploaded_at")
+    .eq("candidate_id",c.id).maybeSingle();
+   if(!panel.isConnected)return;
+   if(r.error)throw r.error;
+   hasSavedCV=!!r.data;
+   if(!pickedNewFile)setCVStatus(r.data?"saved":"missing",r.data
+    ?"✓ Leitura do currículo SALVA no Supabase · "+r.data.filename+" · "+new Date(r.data.uploaded_at).toLocaleString("pt-BR")
+    :"○ Nenhum conteúdo de currículo salvo nesta ficha.");
+  }catch(e){if(panel.isConnected&&!pickedNewFile)setCVStatus("error","! Não foi possível confirmar o currículo no Supabase.");}
  }
- loadResume();
+ async function loadInterview(){
+  if(!notesArea)return;
+  setInterviewStatus("checking","Consultando entrevista salva no Supabase…");
+  try{
+   const r=await db().from("phoenix_talent_interviews").select("id,notes,conducted_at")
+    .eq("candidate_id",c.id).order("conducted_at",{ascending:false}).limit(1).maybeSingle();
+   if(!panel.isConnected)return;
+   if(r.error)throw r.error;
+   const saved=String(r.data?.notes||"");
+   const typed=notesArea.dataset.userEdited==="yes";
+   notesArea.dataset.savedText=saved;
+   if(!typed)notesArea.value=saved;
+   if(typed&&notesArea.value.trim()!==saved.trim())
+     setInterviewStatus("draft","● Alterações ainda não salvas — clique em Salvar evidência.");
+   else if(r.data)
+     setInterviewStatus("saved","✓ Entrevista SALVA no Supabase · "+new Date(r.data.conducted_at).toLocaleString("pt-BR"));
+   else setInterviewStatus("missing","○ Ainda não existe entrevista registrada neste candidato.");
+  }catch(e){if(panel.isConnected)setInterviewStatus("error","! Não foi possível consultar a entrevista no Supabase.");}
+ }
+ if(notesArea){
+  notesArea.addEventListener("input",()=>{
+   notesArea.dataset.userEdited="yes";
+   const saved=String(notesArea.dataset.savedText||"").trim();
+   if(notesArea.value.trim()===saved)
+    setInterviewStatus(saved?"saved":"missing",saved?"✓ Entrevista salva no Supabase.":"○ Entrevista ainda não registrada.");
+   else setInterviewStatus("draft","● Alterações da entrevista ainda não foram salvas.");
+  });
+ }
+ cvInput.addEventListener("change",()=>{
+  pickedNewFile=!!cvInput.files?.length;
+  if(pickedNewFile)setCVStatus("draft","● Arquivo selecionado: "+cvInput.files[0].name+" · AINDA NÃO SALVO. Clique em Ler e anexar currículo.");
+  else loadResume();
+ });
+ const hydration=Promise.all([loadResume(),loadInterview()]).finally(()=>{
+  if(panel.isConnected)$("jrGenerate").disabled=noEdit||!a;
+ });
  $("jrCVSave").addEventListener("click",async()=>{
-  const file=$("jrCVFile").files?.[0];if(!file){writeStatus("Selecione um currículo para analisar.");return;}
-  const btn=$("jrCVSave");btn.disabled=true;$("jrCVStatus").textContent="Extraindo texto do currículo…";
+  const file=cvInput.files?.[0];
+  if(!file){writeStatus("Selecione um arquivo de currículo para anexar.");return;}
+  const btn=$("jrCVSave");btn.disabled=true;
+  setCVStatus("saving","◌ Lendo texto do documento…");
   try{
    const {value,ext}=await getResumeText(file);
-   $("jrCVStatus").textContent="Texto extraído ("+value.length+" caracteres). Salvando com acesso restrito…";
+   setCVStatus("saving","◌ Enviando e confirmando o registro no Supabase…");
    await backend("save_resume",{candidate_id:c.id,filename:file.name.slice(0,160),file_type:ext,extracted_text:value});
-   $("jrCVStatus").textContent="✓ Currículo interpretável anexado: "+file.name+" · "+value.length+" caracteres";
-   writeStatus("Currículo registrado. Gere novamente o parecer para incorporar a experiência profissional.");
-  }catch(e){$("jrCVStatus").textContent="Não foi possível ler este documento.";writeStatus(String(e.message||e));}
-  finally{btn.disabled=noEdit;}
+   const check=await db().from("phoenix_talent_resumes").select("filename,uploaded_at")
+    .eq("candidate_id",c.id).maybeSingle();
+   if(check.error||!check.data||check.data.filename!==file.name.slice(0,160))
+    throw Error("Servidor respondeu, mas não foi possível confirmar o arquivo na ficha.");
+   hasSavedCV=true;pickedNewFile=false;cvInput.value="";
+   if(!panel.isConnected)return;
+   setCVStatus("saved","✓ Leitura do currículo SALVA no Supabase · "+check.data.filename+" · "+new Date(check.data.uploaded_at).toLocaleString("pt-BR"));
+   writeStatus("Texto do currículo salvo no Supabase (o arquivo original não é armazenado). Gere um novo parecer para utilizá-lo.");
+  }catch(e){
+   if(panel.isConnected)setCVStatus("error","! Não foi possível confirmar o anexo. Tente novamente.");
+   if(panel.isConnected)writeStatus(String(e.message||e));
+  }finally{if(panel.isConnected)btn.disabled=noEdit;}
  });
  $("jrGenerate").addEventListener("click",async()=>{
-  if(!a)return;const btn=$("jrGenerate");btn.disabled=true;
-  btn.textContent="JARVIS analisando currículo, DISC e entrevista…";
-  writeStatus("Análise em andamento. O relatório será arquivado na ficha.");
+  if(!a)return;
+  await hydration;if(!panel.isConnected)return;
+  const area=$("ptEvidence");
+  if(area&&String(area.value||"").trim()!==String(area.dataset.savedText||"").trim()){
+   writeStatus("Salve a entrevista antes de pedir a análise.");
+   setInterviewStatus("draft","● Entrevista alterada. Clique em Salvar evidência.");
+   area.focus();return;
+  }
+  if(pickedNewFile){
+   writeStatus("O currículo foi selecionado, mas ainda não anexado. Clique em Ler e anexar currículo.");
+   cvInput.focus();return;
+  }
+  const btn=$("jrGenerate");btn.disabled=true;btn.textContent="JARVIS analisando…";
+  const busy=$("jrThinking"),label=$("jrThinkingText");
+  const messages=[
+   "Organizando informações disponíveis do currículo, entrevista e DISC…",
+   "Relacionando as informações e identificando lacunas…",
+   "Preparando perguntas e o parecer executivo…",
+   "Aguardando processamento e confirmação do relatório no servidor…"
+  ];
+  let step=0;busy.hidden=false;label.textContent=messages[0];
+  ticker=setInterval(()=>{step=(step+1)%messages.length;if(panel.isConnected)label.textContent=messages[step];},4700);
+  writeStatus("JARVIS está analisando. Aguarde o retorno da IA.");
   try{
-    const currentNotes=$("ptEvidence")?.value||"";
-    const data=await backend("analyze_v3",{assessment_id:a.id,interview_evidence:currentNotes,role:job?.title||""});
-    if(panel.isConnected===false)return;
-    activeReport=data.report;reportEl.innerHTML=reportMarkup(activeReport);
-    reportEl.scrollIntoView({behavior:"smooth",block:"nearest"});
-    writeStatus("✓ Parecer JARVIS 3.0 gerado e arquivado.");
-  }catch(e){writeStatus("Erro no JARVIS: "+String(e.message||e));}
-  finally{btn.disabled=noEdit;btn.textContent="✦ Gerar análise aprofundada";}
+   // A API busca a última entrevista realmente salva, não um rascunho de navegador.
+   const data=await backend("analyze_v3",{assessment_id:a.id,role:job?.title||""});
+   if(!panel.isConnected)return;
+   activeReport=data.report;reportEl.innerHTML=reportMarkup(activeReport);
+   reportEl.scrollIntoView({behavior:"smooth",block:"nearest"});
+   writeStatus("✓ Parecer JARVIS "+(data.report?.version||"")+" gerado e arquivado.");
+  }catch(e){if(panel.isConnected)writeStatus("Falha na análise: "+String(e.message||e));}
+  finally{
+   if(ticker!==null)clearInterval(ticker);ticker=null;
+   if(panel.isConnected){busy.hidden=true;btn.disabled=noEdit;btn.textContent="✦ Gerar análise aprofundada";}
+  }
  });
  $("jrPDF").addEventListener("click",()=>{try{
   if(!activeReport)throw Error("Gere o relatório antes de exportar.");
   pdfReport(c,job,a,activeReport);writeStatus("PDF executivo preparado.");
  }catch(e){writeStatus(String(e.message||e));}});
 }
-window.JarvisV3={mount:attach,parseReport,pdfReport,getResumeText};
+window.JarvisV3={mount:attach,parseReport,pdfReport,getResumeText,setInterviewStatus,setCVStatus};
 })();
