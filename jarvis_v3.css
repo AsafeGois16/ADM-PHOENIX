@@ -53,3 +53,30 @@
 #ptView .jrBalance{line-height:1.7}
 #ptView #jrPDF,#ptView #jrGenerate{min-width:0}
 @media(max-width:800px){#ptView .jrSourceMatrix{grid-template-columns:1fr}#ptView .jrSourceMatrix>div{padding:11px 13px}}
+
+/* JARVIS 3.2 — confirmação persistida e feedback de processamento */
+#ptView .jrSaveState{display:flex;align-items:flex-start;gap:9px;border:1px solid #dce6f0;border-radius:11px;padding:12px 13px;font-size:12px;line-height:1.55;font-weight:650;min-width:0;word-break:break-word;overflow-wrap:anywhere;margin:10px 0 12px}
+#ptView .jrSaveState .jrStateIcon{font-size:17px;line-height:1.1;flex:none}
+#ptView .jrSaveState.is-saved{background:#edf7f3;border-color:#c6e4d4;color:#236a50}
+#ptView .jrSaveState.is-missing,#ptView .jrSaveState.is-checking{background:#f4f8fc;border-color:#dbe8f3;color:#536c88}
+#ptView .jrSaveState.is-draft{background:#fff8ec;border-color:#f0d9a9;color:#855b1e}
+#ptView .jrSaveState.is-saving{background:#eff7ff;border-color:#bedcf5;color:#225886}
+#ptView .jrSaveState.is-error{background:#fff2f0;border-color:#edc7c2;color:#9d3931}
+#ptView #jrCVStatus{margin:10px 0 12px!important;font-size:12px!important}
+#ptView .jrThinking[hidden]{display:none!important}
+#ptView .jrThinking{position:relative;overflow:hidden;border:1px solid rgba(201,147,63,.36);border-radius:14px;background:linear-gradient(135deg,#0b1c35,#102d50);color:#f1f6fb;padding:17px 18px;margin-top:16px;box-shadow:0 9px 20px rgba(17,42,75,.15)}
+#ptView .jrThinkingTop{display:flex;gap:15px;align-items:center;min-width:0}
+#ptView .jrThinkingTop>div{min-width:0;flex:1}
+#ptView .jrThinkingTop strong{font-weight:780;font-size:14px;letter-spacing:.35px;color:#f0c57a}
+#ptView .jrThinkingTop p{font-size:12px;margin:6px 0 0!important;line-height:1.55;color:#d9e5f4}
+#ptView .jrOrb{width:49px;height:49px;flex:none;display:grid;place-items:center;border-radius:50%;border:2px solid rgba(244,186,77,.54);box-shadow:inset 0 0 16px rgba(242,155,45,.25),0 0 22px rgba(219,151,58,.21);position:relative;animation:jarvisOrbit 3.6s linear infinite}
+#ptView .jrOrb::before,#ptView .jrOrb::after{content:"";position:absolute;border-radius:50%;border:1px solid rgba(247,189,83,.55);inset:7px}
+#ptView .jrOrb::after{inset:16px;background:#f3c06c;box-shadow:0 0 10px #f3b54a}
+#ptView .jrOrb span{position:absolute;width:5px;height:5px;border-radius:50%;top:-3px;left:20px;background:#ffce78;box-shadow:0 0 9px #ffc365}
+#ptView .jrThinkingTrack{margin-top:16px;height:4px;border-radius:6px;background:rgba(255,255,255,.12);position:relative;overflow:hidden}
+#ptView .jrThinkingPulse{position:absolute;top:0;left:-35%;width:35%;height:100%;border-radius:7px;background:linear-gradient(90deg,transparent,#e6a947,#ffe2a5);animation:jarvisScan 2.35s ease-in-out infinite}
+#ptView .jrThinkingHint{margin:10px 0 0!important;color:#adc3dc!important;font-size:11px!important}
+@keyframes jarvisOrbit{to{transform:rotate(360deg)}}
+@keyframes jarvisScan{0%{left:-35%}100%{left:105%}}
+@media(prefers-reduced-motion:reduce){#ptView .jrOrb,#ptView .jrThinkingPulse{animation:none}#ptView .jrThinkingPulse{left:35%}}
+@media(max-width:700px){#ptView .jrThinking{padding:13px}#ptView .jrOrb{width:43px;height:43px}}
