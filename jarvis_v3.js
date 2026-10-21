@@ -69,8 +69,8 @@ async function getResumeText(file){
 }
 function parseReport(input){
  if(!input)return null;
- if(typeof input==="object"&&["3.0","3.1","3.2"].includes(input.version))return input;
- try{const report=JSON.parse(input);if(["3.0","3.1","3.2"].includes(report?.version)&&report.sections)return report;}catch{}
+ if(typeof input==="object"&&["3.0","3.1","3.2","3.3"].includes(input.version))return input;
+ try{const report=JSON.parse(input);if(["3.0","3.1","3.2","3.3"].includes(report?.version)&&report.sections)return report;}catch{}
  return {legacy:String(input)};
 }
 function sectionMarkup(k,val){
@@ -301,7 +301,7 @@ function pdfReport(candidate,job,assessment,report,review){
  textSection("exercicio_pratico",excerpt(sections.exercicio_pratico,225));
  smallerList("proximos_passos",2,130);
  textSection("nota_metodologica",excerpt(sections.nota_metodologica,175),{font:8.2,lead:4.0});
- const ending=report?.version==="3.1"?"Resumo de destaques · análise integral no ADM · revisão humana.":"Histórico V3.0 · análise integral disponível no ADM.";
+ const ending=["3.1","3.2","3.3"].includes(report?.version)?"JARVIS "+report.version+" · síntese de evidências; parecer final exclusivo do RH.":"Histórico V3.0 · análise integral disponível no ADM.";
  keep(13);doc.setFont("helvetica","italic");doc.setFontSize(8.5);rgb(muted);doc.text(ending,LEFT+2,y+3);
  doc.save("JARVIS_Dossie_"+String(candidate.id||"relatorio").slice(0,8)+".pdf");
 }
