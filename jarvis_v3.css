@@ -42,3 +42,14 @@
 #ptView .jrLegacy pre{font:12px/1.65 Inter,system-ui,sans-serif;white-space:pre-wrap;overflow-wrap:anywhere;max-height:350px;overflow:auto}
 @media(max-width:1000px){#ptDetail.jrReady .ptColumns{grid-template-columns:1fr}#ptView .jrOnline{display:none}}
 @media(max-width:700px){#ptView .jrHero{padding:19px;gap:14px}.jrHeroCopy h3{font-size:28px!important}#ptView .jrAvatar{width:98px;height:85px}#ptView .jrControlGrid{grid-template-columns:1fr;padding:12px}#ptView .jrReport{padding:20px 16px}#ptView .jrSection h4{font-size:15px}#ptView .jrSection p,#ptView .jrSection li{font-size:13px}}
+
+/* JARVIS 3.1 · Proveniência visual das evidências */
+#ptView .jrSourceMatrix{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px;padding:8px 0 17px}
+#ptView .jrSourceMatrix>div{border:1px solid #dbe6f1;background:linear-gradient(145deg,#f8fbff,#fff);border-radius:12px;padding:14px 15px;min-width:0}
+#ptView .jrSourceMatrix b{display:block;letter-spacing:.75px;font-size:10px;color:#1b5487;margin-bottom:6px}
+#ptView .jrSourceMatrix span{font-size:12px;color:#637b95;line-height:1.5}
+#ptView .jrSourceMatrix>div:nth-child(3){border-style:dashed}
+#ptView .jrSection:has(h4){overflow-wrap:anywhere}
+#ptView .jrBalance{line-height:1.7}
+#ptView #jrPDF,#ptView #jrGenerate{min-width:0}
+@media(max-width:800px){#ptView .jrSourceMatrix{grid-template-columns:1fr}#ptView .jrSourceMatrix>div{padding:11px 13px}}
