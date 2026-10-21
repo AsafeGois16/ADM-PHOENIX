@@ -17,3 +17,4 @@ jobs:
           node tests/talent-integration.test.cjs
           node tests/jarvis-pdf-smoke.cjs
           node tests/jarvis-status.test.cjs
+          node tests/jarvis-role-review.test.cjs
