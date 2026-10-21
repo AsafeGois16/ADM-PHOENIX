@@ -8,6 +8,8 @@ const labels={
  resumo_executivo:["Resumo executivo","clipboard-list"],
  leitura_disc:["Leitura comportamental DISC","chart-no-axes-combined"],
  analise_curriculo:["Leitura profissional do currículo","file-user"],
+ curriculo_declaracoes:["Currículo · informações declaradas","file-check-2"],
+ entrevista_relato:["Entrevista · experiências relatadas","messages-square"],
  contexto_vaga:["Contexto operacional da vaga","briefcase-business"],
  evidencias_observadas:["Relatos e evidências disponíveis","check-circle-2"],
  pontos_a_confirmar:["Pontos a confirmar","circle-help"],
@@ -66,10 +68,17 @@ function sectionMarkup(k,val){
 }
 function reportMarkup(report){
  if(!report)return "<div class='jrEmpty'>Nenhuma análise gerada nesta ficha. Anexe o currículo, registre a entrevista e solicite uma leitura do JARVIS.</div>";
- if(report.legacy)return "<div class='jrLegacy'><b>Parecer da versão anterior</b><p>Gere uma nova análise JARVIS 3.1 para visualizar o relatório em formato executivo.</p><pre>"+htmlSafe(report.legacy)+"</pre></div>";
+ if(report.legacy)return "<div class='jrLegacy'><b>Parecer da versão anterior</b><p>Gere uma nova análise JARVIS 3.1 para visualizar o relatório com fontes discriminadas e revisão humana.</p><pre>"+htmlSafe(report.legacy)+"</pre></div>";
  const obj=report.sections||{},meta=report.method||{};
- return "<div class='jrReportTop'><span>RELATÓRIO EXECUTIVO · JARVIS</span><span>"+(report.resume_included?"Currículo incorporado":"Sem currículo")+"</span></div>"+
-  (meta.balanced?"<p class='jrBalance'>Distribuição DISC relativamente equilibrada; sem predominância expressiva.</p>":"")+
+ const spread=Number(meta.spread_pp);
+ const balanced=meta.balanced===true&&Number.isFinite(spread);
+ const ties=Array.isArray(meta.runner_up_factors)&&meta.runner_up_factors.length>1;
+ const basis="<div class='jrSourceMatrix'><div><b>CURRÍCULO</b><span>"+(report.resume_included?"Declarações profissionais, não auditadas":"Não incluído")+"</span></div>"+
+ "<div><b>ENTREVISTA</b><span>Relatos sujeitos a confirmação</span></div>"+
+ "<div><b>VERIFICAÇÃO PRÁTICA</b><span>Nenhuma registrada nesta avaliação</span></div></div>";
+ return "<div class='jrReportTop'><span>RELATÓRIO EXECUTIVO · JARVIS "+htmlSafe(report.version||"")+"</span><span>"+(report.resume_included?"Currículo incorporado":"Sem currículo")+"</span></div>"+
+  (balanced?"<p class='jrBalance'>Distribuição DISC relativamente equilibrada: diferença máxima de "+spread.toFixed(1)+" pontos percentuais. Não há predominância expressiva."+(meta.first_choice_tied?" As primeiras escolhas estão empatadas entre D, I, S e C.":"")+(ties?" Há empate entre os fatores da segunda maior pontuação.":"")+"</p>":"")+
+  basis+
   Object.keys(labels).map(k=>sectionMarkup(k,obj[k])).join("");
 }
 
