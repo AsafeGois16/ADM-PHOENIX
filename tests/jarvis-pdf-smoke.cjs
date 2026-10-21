@@ -56,3 +56,20 @@ agent.pdfReport({full_name:'Candidato de Teste',id:'12345678-0000-0000-0000-0000
  observed);
 assert.ok(pages.length<=3,'Nova versão deixou página órfã: '+JSON.stringify(pages));
 console.log('JARVIS 3.2 PDF: '+pages.length+' páginas, conteúdo='+JSON.stringify(pages));
+
+const withRequirements={...sample,version:"3.3",requirements:{items:[
+ {id:"documentacao",title:"Movimentações cadastrais e conferência documental",priority:"essencial",estado:"somente_declarado",fundamento:"Conhecimento declarado no currículo",origem:"curriculo",proxima_verificacao:"Exercício prático."},
+ {id:"prazos",title:"Cumprimento de prazos e priorização",priority:"essencial",estado:"dificuldade_observada",fundamento:"No exercício registrado pelo entrevistador, a priorização foi insuficiente.",origem:"observacao_entrevistador",proxima_verificacao:"Repetir simulação."},
+ {id:"excel",title:"Conhecimento operacional em Excel",priority:"importante",estado:"dificuldade_observada",fundamento:"Não concluiu fórmula de busca na simulação.",origem:"observacao_entrevistador",proxima_verificacao:"Teste padronizado."}
+]}};
+assert.equal(agent.parseReport(JSON.stringify(withRequirements)).version,"3.3");
+agent.pdfReport(
+ {full_name:"Candidato de Teste",id:"12345678-0000-0000-0000-000000000000"},
+ {title:"Backoffice / Operações"},
+ {result:{dimensions:{D:{relative_share_percent:25},I:{relative_share_percent:26.3},C:{relative_share_percent:25},S:{relative_share_percent:23.8}}}},
+ withRequirements,
+ {verdict:"aderente_com_ressalvas",rationale:"Parecer ilustrativo do RH com requisitos profissionais verificados e ressalvas documentadas pela equipe humana, sem aprovação automática."}
+);
+assert.ok(pages.length>=3&&pages.length<=5,"Relatório completo excedeu o limite editorial: "+pages.length);
+assert.ok(pages.every(n=>n>8),"Uma página ficou praticamente vazia: "+JSON.stringify(pages));
+console.log("JARVIS 3.3 PDF com análise por requisitos e decisão humana: "+JSON.stringify(pages));
