@@ -230,8 +230,8 @@ function pdfReport(candidate,job,assessment,report,review){
  }
  // Texto analítico integral sem cortes artificiais. O fluxo quebra páginas apenas quando necessário.
  textSection("Síntese das evidências da vaga",sections.resumo_evidencias_da_vaga||sections.resumo_executivo);
+ keep(60);
  heading("DISC  /  DISTRIBUIÇÃO RELATIVA");
- keep(45);
  for(const factor of ["D","I","S","C"]){
   const raw=Number(dims[factor]?.relative_share_percent||0);
   const value=Number.isFinite(raw)?Math.min(100,Math.max(0,raw)):0;
