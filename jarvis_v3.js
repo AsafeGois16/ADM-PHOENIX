@@ -136,7 +136,7 @@ function pdfReport(candidate,job,assessment,report,review){
  if(!window.jspdf?.jsPDF)throw Error("Biblioteca de PDF indisponível.");
  if(!report)throw Error("Gere o parecer antes de exportar.");
  const doc=new window.jspdf.jsPDF({format:"a4",unit:"mm",compress:true});
- const W=210,LEFT=17,RIGHT=193,WIDTH=176,TOP=43,BOTTOM=279;
+ const W=210,LEFT=17,RIGHT=193,WIDTH=176,TOP=41,BOTTOM=279;
  const navy=[10,29,54],blue=[34,84,131],gold=[206,157,74],ink=[35,53,74],muted=[95,116,138],soft=[241,246,252];
  const sections=report.sections||{},method=report.method||{},dims=assessment?.result?.dimensions||{};
  const rows=Array.isArray(report.requirements?.items)?report.requirements.items:[];
@@ -167,7 +167,7 @@ function pdfReport(candidate,job,assessment,report,review){
  function keep(mm){if(y+mm>BOTTOM)newPage();}
  function para(value,opts={}){
   const txt=docText(value);if(!txt)return;
-  const size=opts.size||9.0,lead=opts.lead||4.6,indent=opts.indent===undefined?2:opts.indent;
+  const size=opts.size||8.7,lead=opts.lead||4.3,indent=opts.indent===undefined?2:opts.indent;
   const font=opts.bold?"bold":"normal",color=opts.color||ink,width=WIDTH-indent-2;
   doc.setFont("helvetica",font);doc.setFontSize(size);
   const pieces=doc.splitTextToSize(txt,width);
@@ -185,11 +185,11 @@ function pdfReport(candidate,job,assessment,report,review){
   setFill(soft);doc.roundedRect(LEFT,y-4,WIDTH,10,1.7,1.7,"F");
   doc.setFont("helvetica","bold");doc.setFontSize(9.6);setColor(blue);
   doc.text(docText(txt).toUpperCase(),LEFT+4,y+2.3);
-  y+=13;
+  y+=12;
  }
  function item(value,opts={}){
   if(!docText(value))return;
-  para("• "+docText(value),{size:opts.size||8.8,lead:opts.lead||4.45,indent:4,after:opts.after===undefined?1.6:opts.after});
+  para("• "+docText(value),{size:opts.size||8.5,lead:opts.lead||4.15,indent:4,after:opts.after===undefined?1.4:opts.after});
  }
  function list(title,data){
   if(!Array.isArray(data)||!data.length)return;
@@ -268,6 +268,8 @@ function pdfReport(candidate,job,assessment,report,review){
  textSection("VERIFICAÇÃO INDEPENDENTE",Array.isArray(report.sources?.verified_evidence)&&report.sources.verified_evidence.length?
    report.sources.verified_evidence.join(" | "):
    "Não consta verificação independente nesta ficha; registros de exercícios descritos pelo entrevistador não equivalem a auditoria dos resultados.");
+ textSection("METODOLOGIA E LIMITES",sections.nota_metodologica||
+  "O DISC autoral apresenta somente preferências relativas e não valida aptidão profissional. Este documento organiza evidências para análise humana.");
  list("PONTOS DE ATENÇÃO / O QUE INVESTIGAR",sections.pontos_a_confirmar);
  list("PERGUNTAS PARA ENTREVISTA DE APROFUNDAMENTO",sections.perguntas_entrevista);
  textSection("EXERCÍCIO PRÁTICO RECOMENDADO",sections.exercicio_pratico);
@@ -278,8 +280,6 @@ function pdfReport(candidate,job,assessment,report,review){
   para(review.rationale);
   if(review.created_at)para("Registro: "+new Date(review.created_at).toLocaleString("pt-BR"),{size:8,color:muted});
  }
- textSection("METODOLOGIA E LIMITES",sections.nota_metodologica||
-  "O DISC autoral apresenta somente preferências relativas e não valida aptidão profissional. Este documento organiza evidências para análise humana.");
  doc.save("JARVIS_Dossie_"+String(candidate?.id||"relatorio").slice(0,8)+".pdf");
 }
 
