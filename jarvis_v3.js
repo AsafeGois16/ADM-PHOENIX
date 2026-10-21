@@ -10,6 +10,7 @@ const labels={
  analise_curriculo:["Leitura profissional do currículo","file-user"],
  curriculo_declaracoes:["Currículo · informações declaradas","file-check-2"],
  entrevista_relato:["Entrevista · experiências relatadas","messages-square"],
+ observacoes_entrevistador:["Observações registradas pelo entrevistador","clipboard-check"],
  contexto_vaga:["Contexto operacional da vaga","briefcase-business"],
  evidencias_observadas:["Relatos e evidências disponíveis","check-circle-2"],
  pontos_a_confirmar:["Pontos a confirmar","circle-help"],
@@ -68,8 +69,8 @@ async function getResumeText(file){
 }
 function parseReport(input){
  if(!input)return null;
- if(typeof input==="object"&&["3.0","3.1"].includes(input.version))return input;
- try{const report=JSON.parse(input);if(["3.0","3.1"].includes(report?.version)&&report.sections)return report;}catch{}
+ if(typeof input==="object"&&["3.0","3.1","3.2"].includes(input.version))return input;
+ try{const report=JSON.parse(input);if(["3.0","3.1","3.2"].includes(report?.version)&&report.sections)return report;}catch{}
  return {legacy:String(input)};
 }
 function sectionMarkup(k,val){
@@ -87,7 +88,7 @@ function reportMarkup(report){
  const ties=Array.isArray(meta.runner_up_factors)&&meta.runner_up_factors.length>1;
  const basis="<div class='jrSourceMatrix'><div><b>CURRÍCULO</b><span>"+(report.resume_included?"Declarações profissionais, não auditadas":"Não incluído")+"</span></div>"+
  "<div><b>ENTREVISTA</b><span>Relatos sujeitos a confirmação</span></div>"+
- "<div><b>VERIFICAÇÃO PRÁTICA</b><span>Nenhuma registrada nesta avaliação</span></div></div>";
+ "<div><b>OBSERVAÇÕES DO ENTREVISTADOR</b><span>"+(report?.sources?.interviewer_observations?.length?"Exercício registrado, sujeito a conferência":"Não registradas; sem comprovação independente")+"</span></div></div>";
  return "<div class='jrReportTop'><span>RELATÓRIO EXECUTIVO · JARVIS "+htmlSafe(report.version||"")+"</span><span>"+(report.resume_included?"Currículo incorporado":"Sem currículo")+"</span></div>"+
   (balanced?"<p class='jrBalance'>Distribuição DISC relativamente equilibrada: diferença máxima de "+spread.toFixed(1)+" pontos percentuais. Não há predominância expressiva."+(meta.first_choice_tied?" As primeiras escolhas estão empatadas entre D, I, S e C.":"")+(ties?" Há empate entre os fatores da segunda maior pontuação.":"")+"</p>":"")+
   basis+
@@ -227,13 +228,15 @@ function pdfReport(candidate,job,assessment,report){
  textSection("contexto_vaga",excerpt(sections.contexto_vaga,420));
  const resumeClaims=sections.curriculo_declaracoes||report?.sources?.resume_claims||[];
  const interviewClaims=sections.entrevista_relato||report?.sources?.interview_claims||[];
+ const observed=sections.observacoes_entrevistador||report?.sources?.interviewer_observations||[];
  const legacy=Array.isArray(sections.evidencias_observadas)?sections.evidencias_observadas:[];
  const cvHas=Array.isArray(resumeClaims)&&resumeClaims.length;
  const ivHas=Array.isArray(interviewClaims)&&interviewClaims.length;
  // Relatórios históricos seguem visíveis, mas não reclassificamos seus itens sem proveniência.
  title("MATRIZ DE RASTREABILIDADE  /  DECLARAÇÕES NÃO VERIFICADAS");
- if(cvHas){title("CURRÍCULO  /  NÃO VERIFICADO");itemList(selections(resumeClaims,3,150),8.35,3.95);}
- if(ivHas){title("ENTREVISTA  /  NÃO VERIFICADA");itemList(selections(interviewClaims,3,150),8.35,3.95);}
+ if(cvHas){title("CURRÍCULO  /  NÃO VERIFICADO");itemList(selections(resumeClaims,observed.length?2:3,150),8.35,3.95);}
+ if(ivHas){title("ENTREVISTA  /  RELATOS");itemList(selections(interviewClaims,observed.length?2:3,150),8.35,3.95);}
+ if(Array.isArray(observed)&&observed.length){title("OBSERVAÇÃO DO ENTREVISTADOR  /  NÃO AUDITADA");itemList(selections(observed,2,160),8.25,3.9);}
  if(!cvHas&&!ivHas&&legacy.length){
   title("INDÍCIOS RELATADOS  /  ORIGEM NÃO DISCRIMINADA");
   itemList(selections(legacy,5,160),8.2,3.9);
@@ -242,7 +245,7 @@ function pdfReport(candidate,job,assessment,report){
  doc.setFont("helvetica","bold");doc.setFontSize(9);rgb(blue);
  doc.text("VERIFICAÇÃO INDEPENDENTE",LEFT+4,y+5);
  doc.setFont("helvetica","normal");doc.setFontSize(8.5);rgb(muted);
- doc.text("Nenhum teste prático comprovado foi registrado nesta avaliação.",LEFT+4,y+10.5);y+=18;
+ doc.text(Array.isArray(observed)&&observed.length?"Há observação registrada; não houve verificação independente.":"Nenhum teste prático com registro observacional nesta avaliação.",LEFT+4,y+10.5);y+=18;
  // Página 3: roteiro de decisão humana.
  more();
  const smallerList=(key,max,size=135)=>{const list=selections(sections[key],max,size);if(list.length){title(labels[key]?.[0]||key);itemList(list,8.45,3.95);}};
