@@ -234,11 +234,11 @@ function pdfReport(candidate,job,assessment,report){
  // Página 3: roteiro de decisão humana.
  more();
  const smallerList=(key,max,size=135)=>{const list=selections(sections[key],max,size);if(list.length){title(labels[key]?.[0]||key);itemList(list,8.45,3.95);}};
- smallerList("pontos_a_confirmar",4,155);
- smallerList("perguntas_entrevista",6,150);
- textSection("exercicio_pratico",excerpt(sections.exercicio_pratico,365));
- smallerList("proximos_passos",4,155);
- textSection("nota_metodologica",excerpt(sections.nota_metodologica,300),{font:8.2,lead:4.0});
+ smallerList("pontos_a_confirmar",3,140);
+ smallerList("perguntas_entrevista",5,140);
+ textSection("exercicio_pratico",excerpt(sections.exercicio_pratico,280));
+ smallerList("proximos_passos",3,140);
+ textSection("nota_metodologica",excerpt(sections.nota_metodologica,220),{font:8.2,lead:4.0});
  const ending=report?.version==="3.1"?"Resumo de destaques · análise integral no ADM · revisão humana.":"Histórico V3.0 · análise integral disponível no ADM.";
  keep(13);doc.setFont("helvetica","italic");doc.setFontSize(8.5);rgb(muted);doc.text(ending,LEFT+2,y+3);
  doc.save("JARVIS_Dossie_"+String(candidate.id||"relatorio").slice(0,8)+".pdf");
