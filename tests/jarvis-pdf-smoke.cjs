@@ -39,6 +39,6 @@ const sample={
 assert.equal(agent.parseReport(JSON.stringify(sample)).version,'3.1');
 assert.equal(agent.parseReport(JSON.stringify({...sample,version:'3.0'})).version,'3.0');
 agent.pdfReport({full_name:'Candidato de Teste',id:'12345678-0000-0000-0000-000000000000'},{title:'Backoffice / Operações'},{result:{dimensions:{D:{relative_share_percent:25},I:{relative_share_percent:26.3},C:{relative_share_percent:25},S:{relative_share_percent:23.8}}}},sample);
-assert.ok(pages.length>=3&&pages.length<=5,'Paginação incompatível: '+pages.length);
+assert.ok(pages.length===3,'Paginação incompatível: '+pages.length);
 assert.ok(pages.at(-1)>10,'Última página praticamente vazia: '+JSON.stringify(pages));
 console.log('JARVIS 3.1 PDF mock - páginas:',pages.length,'operações por página:',pages);
