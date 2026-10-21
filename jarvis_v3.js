@@ -241,13 +241,13 @@ function pdfReport(candidate,job,assessment,report){
   title("INDÍCIOS RELATADOS  /  ORIGEM NÃO DISCRIMINADA");
   itemList(selections(legacy,5,160),8.2,3.9);
  }
+ // Página 3: síntese do que foi observado e plano de investigação.
+ more();
  keep(20);fill([247,249,252]);doc.roundedRect(LEFT,y,CONTENT,13,2,2,"F");
  doc.setFont("helvetica","bold");doc.setFontSize(9);rgb(blue);
  doc.text("VERIFICAÇÃO INDEPENDENTE",LEFT+4,y+5);
  doc.setFont("helvetica","normal");doc.setFontSize(8.5);rgb(muted);
  doc.text(Array.isArray(observed)&&observed.length?"Há observação registrada; não houve verificação independente.":"Nenhum teste prático com registro observacional nesta avaliação.",LEFT+4,y+10.5);y+=18;
- // Página 3: roteiro de decisão humana.
- more();
  const smallerList=(key,max,size=135)=>{const list=selections(sections[key],max,size);if(list.length){title(labels[key]?.[0]||key);itemList(list,8.45,3.95);}};
  smallerList("pontos_a_confirmar",3,140);
  smallerList("perguntas_entrevista",5,140);
