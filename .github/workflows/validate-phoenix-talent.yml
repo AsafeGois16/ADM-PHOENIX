@@ -1,7 +1,7 @@
 name: Validate ADM Phoenix Talent
 on:
   push:
-    branches: [main, feat/phoenix-talent-rh]
+    branches: [main, feat/phoenix-talent-rh, feat/jarvis-executive-report-3-1]
   pull_request:
 jobs:
   integration:
@@ -15,3 +15,4 @@ jobs:
         run: |
           node --check talent_module.js
           node tests/talent-integration.test.cjs
+          node tests/jarvis-pdf-smoke.cjs
