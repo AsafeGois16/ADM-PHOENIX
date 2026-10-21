@@ -19,6 +19,18 @@ const labels={
  nota_metodologica:["Critérios e limites","shield-check"]
 };
 const loaded=new Map();
+function setInterviewStatus(state,message){
+ const el=$("ptInterviewState");if(!el)return;
+ el.className="jrSaveState is-"+state;
+ const ico=el.querySelector(".jrStateIcon");
+ if(ico)ico.textContent={checking:"◌",missing:"○",saved:"✓",draft:"●",saving:"◌",error:"!"}[state]||"○";
+ const text=$("ptInterviewStateText");if(text)text.textContent=message;
+}
+function setCVStatus(state,message){
+ const el=$("jrCVStatus");if(!el)return;
+ el.className="jrSaveState is-"+state;
+ el.textContent=message;
+}
 async function scriptOnce(url,globalName){
  if(window[globalName])return window[globalName];
  if(!loaded.has(globalName))loaded.set(globalName,new Promise((resolve,reject)=>{
@@ -249,9 +261,9 @@ function attach(args){
  const existing=$("jrPanel");if(existing)existing.remove();
  const panel=document.createElement("section");panel.id="jrPanel";panel.className="jrPanel";
  panel.dataset.candidate=c.id;
- panel.innerHTML="<div class='jrHero'><div class='jrAvatar'><img src='jarvis_avatar.jpg' alt='Identidade visual do agente JARVIS' onerror='this.style.display=\"none\"'></div><div class='jrHeroCopy'><span class='jrKicker'>PHOENIX TALENT · INTELIGÊNCIA DE RECRUTAMENTO</span><h3>JARVIS <small>3.0</small></h3><p>Leitura crítica do DISC, currículo e entrevista · análise para revisão humana</p></div><div class='jrOnline'>AGENTE DE APOIO AO RH</div></div>"+
- "<div class='jrControlGrid'><div class='jrDoc'><h4>Currículo profissional</h4><p>PDF, DOCX ou TXT, até 5 MB. A leitura local extrai texto e armazena apenas o conteúdo textual, restrito ao RH.</p><input id='jrCVFile' type='file' accept='.pdf,.docx,.txt,application/pdf,text/plain,application/vnd.openxmlformats-officedocument.wordprocessingml.document' aria-label='Selecionar currículo do candidato'><p class='jrFileStatus' id='jrCVStatus'>Verificando currículo…</p><button class='ptBtn soft' id='jrCVSave' type='button'>Ler e anexar currículo</button></div>"+
- "<div class='jrRun'><h4>Parecer JARVIS</h4><p>Combine preferências declaradas, histórico profissional e evidências da entrevista. Sem notas de aprovação ou rejeição.</p><button class='ptBtn jrPrimary' id='jrGenerate' type='button'>✦ Gerar análise aprofundada</button><button class='ptBtn soft' id='jrPDF' type='button'>↓ Exportar PDF executivo</button><p id='jrStatus' role='status' aria-live='polite'></p></div></div>"+
+ panel.innerHTML="<div class='jrHero'><div class='jrAvatar'><img src='jarvis_avatar.jpg' alt='Identidade visual do agente JARVIS' onerror='this.style.display=\"none\"'></div><div class='jrHeroCopy'><span class='jrKicker'>PHOENIX TALENT · INTELIGÊNCIA DE RECRUTAMENTO</span><h3>JARVIS <small>3.2</small></h3><p>Leitura crítica do DISC, currículo e entrevista · análise para revisão humana</p></div><div class='jrOnline'>AGENTE DE APOIO AO RH</div></div>"+
+ "<div class='jrControlGrid'><div class='jrDoc'><h4>Currículo profissional</h4><p>PDF, DOCX ou TXT, até 5 MB. A leitura local extrai texto e armazena apenas o conteúdo textual, restrito ao RH.</p><input id='jrCVFile' type='file' accept='.pdf,.docx,.txt,application/pdf,text/plain,application/vnd.openxmlformats-officedocument.wordprocessingml.document' aria-label='Selecionar currículo do candidato'><p class='jrSaveState is-checking' id='jrCVStatus' role='status' aria-live='polite'>◌ Verificando currículo salvo no Supabase…</p><button class='ptBtn soft' id='jrCVSave' type='button'>Ler e anexar currículo</button></div>"+
+ "<div class='jrRun'><h4>Parecer JARVIS</h4><p>Combine preferências declaradas, histórico profissional e evidências da entrevista. Sem notas de aprovação ou rejeição.</p><button class='ptBtn jrPrimary' id='jrGenerate' type='button'>✦ Gerar análise aprofundada</button><button class='ptBtn soft' id='jrPDF' type='button'>↓ Exportar PDF executivo</button><p id='jrStatus' role='status' aria-live='polite'></p><div id='jrThinking' class='jrThinking' role='status' aria-live='polite' hidden><div class='jrThinkingTop'><span class='jrOrb' aria-hidden='true'><span></span></span><div><strong>JARVIS em análise</strong><p id='jrThinkingText'>Preparando a leitura das informações disponíveis…</p></div></div><div class='jrThinkingTrack'><span class='jrThinkingPulse'></span></div><p class='jrThinkingHint'>Processamento pela IA. Aguarde a confirmação do parecer salvo; o tempo pode variar.</p></div></div></div>"+
  "<div class='jrReport' id='jrReport'></div>";
  detail.appendChild(panel);
  detail.classList.add("jrReady");
@@ -300,5 +312,5 @@ function attach(args){
   pdfReport(c,job,a,activeReport);writeStatus("PDF executivo preparado.");
  }catch(e){writeStatus(String(e.message||e));}});
 }
-window.JarvisV3={mount:attach,parseReport,pdfReport,getResumeText};
+window.JarvisV3={mount:attach,parseReport,pdfReport,getResumeText,setInterviewStatus,setCVStatus};
 })();
