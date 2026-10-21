@@ -325,6 +325,52 @@ function attach(args){
  detail.appendChild(panel);
  detail.classList.add("jrReady");
  let activeReport=parseReport(previous?.report_text||"");
+ let currentReview=null;
+ const humanStatus=$("jrHumanStatus"),humanReason=$("jrHumanRationale"),humanSave=$("jrHumanSave"),humanLatest=$("jrHumanLatest"),humanFeedback=$("jrHumanFeedback");
+ const humanWrite=msg=>{if(humanFeedback)humanFeedback.textContent=msg;};
+ function showHumanReview(data){
+  currentReview=data||null;
+  if(!humanLatest)return;
+  if(data){
+   humanLatest.innerHTML="<strong>"+htmlSafe(humanVeredictLabels[data.verdict]||"Parecer RH")+"</strong><p>"+htmlSafe(data.rationale)+"</p><small>Registrado por responsável autorizado em "+new Date(data.created_at).toLocaleString("pt-BR")+". Histórico preservado no Supabase.</small>";
+  }else humanLatest.textContent="Ainda não há conclusão humana registrada para esta avaliação.";
+ }
+ async function loadHumanReview(){
+  if(!a)return showHumanReview(null);
+  try{
+   const r=await db().from("phoenix_talent_human_reviews").select("id,verdict,rationale,created_at")
+    .eq("candidate_id",c.id).eq("assessment_id",a.id)
+    .order("created_at",{ascending:false}).limit(1).maybeSingle();
+   if(r.error)throw r.error;
+   if(panel.isConnected)showHumanReview(r.data||null);
+  }catch(e){if(panel.isConnected)humanWrite("Não foi possível consultar os pareceres humanos: "+String(e.message||e));}
+ }
+ if(humanSave){
+  humanSave.disabled=role==="viewer"||!a;
+  humanStatus.disabled=role==="viewer"||!a;
+  humanReason.disabled=role==="viewer"||!a;
+  humanSave.addEventListener("click",async()=>{
+   if(!a)return humanWrite("É necessário uma avaliação registrada antes do parecer.");
+   const rationale=humanReason.value.trim(),verdict=humanStatus.value;
+   if(!Object.keys(humanVeredictLabels).includes(verdict))return humanWrite("Selecione uma conclusão válida.");
+   if(rationale.length<40)return humanWrite("Descreva o fundamento profissional com pelo menos 40 caracteres.");
+   const currentButton=humanSave;currentButton.disabled=true;humanWrite("Salvando parecer do recrutador…");
+   try{
+    const user=await db().auth.getUser();
+    if(user.error||!user.data.user)throw Error("Sessão expirada; entre novamente.");
+    const r=await db().from("phoenix_talent_human_reviews").insert({
+     candidate_id:c.id,assessment_id:a.id,reviewer_id:user.data.user.id,
+     verdict,rationale
+    }).select("id,verdict,rationale,created_at").single();
+    if(r.error||!r.data)throw r.error||Error("Registro não confirmado pelo banco.");
+    showHumanReview(r.data);humanReason.value="";
+    humanWrite("✓ Parecer HUMANO salvo no Supabase. Registro anterior preservado.");
+   }catch(e){humanWrite("Falha ao registrar o parecer: "+String(e.message||e));}
+   finally{if(panel.isConnected)currentButton.disabled=role==="viewer";}
+  });
+ }
+ loadHumanReview();
+
  const reportEl=$("jrReport");
  reportEl.innerHTML=reportMarkup(activeReport);
  const writeStatus=text=>{if($("jrStatus"))$("jrStatus").textContent=text;msg(text);};
