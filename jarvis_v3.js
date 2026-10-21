@@ -265,7 +265,7 @@ function attach(args){
  const panel=document.createElement("section");panel.id="jrPanel";panel.className="jrPanel";
  panel.dataset.candidate=c.id;
  panel.innerHTML="<div class='jrHero'><div class='jrAvatar'><img src='jarvis_avatar.jpg' alt='Identidade visual do agente JARVIS' onerror='this.style.display=\"none\"'></div><div class='jrHeroCopy'><span class='jrKicker'>PHOENIX TALENT · INTELIGÊNCIA DE RECRUTAMENTO</span><h3>JARVIS <small>3.2</small></h3><p>Leitura crítica do DISC, currículo e entrevista · análise para revisão humana</p></div><div class='jrOnline'>AGENTE DE APOIO AO RH</div></div>"+
- "<div class='jrControlGrid'><div class='jrDoc'><h4>Currículo profissional</h4><p>PDF, DOCX ou TXT, até 5 MB. A leitura local extrai texto e armazena apenas o conteúdo textual, restrito ao RH.</p><input id='jrCVFile' type='file' accept='.pdf,.docx,.txt,application/pdf,text/plain,application/vnd.openxmlformats-officedocument.wordprocessingml.document' aria-label='Selecionar currículo do candidato'><p class='jrSaveState is-checking' id='jrCVStatus' role='status' aria-live='polite'>◌ Verificando currículo salvo no Supabase…</p><button class='ptBtn soft' id='jrCVSave' type='button'>Ler e anexar currículo</button></div>"+
+ "<div class='jrControlGrid'><div class='jrDoc'><h4>Currículo profissional</h4><p>PDF, DOCX ou TXT, até 5 MB. A leitura local extrai texto; somente esse texto é salvo no RH, não o arquivo original.</p><input id='jrCVFile' type='file' accept='.pdf,.docx,.txt,application/pdf,text/plain,application/vnd.openxmlformats-officedocument.wordprocessingml.document' aria-label='Selecionar currículo do candidato'><p class='jrSaveState is-checking' id='jrCVStatus' role='status' aria-live='polite'>◌ Verificando currículo salvo no Supabase…</p><button class='ptBtn soft' id='jrCVSave' type='button'>Ler e anexar currículo</button></div>"+
  "<div class='jrRun'><h4>Parecer JARVIS</h4><p>Combine preferências declaradas, histórico profissional e evidências da entrevista. Sem notas de aprovação ou rejeição.</p><button class='ptBtn jrPrimary' id='jrGenerate' type='button'>✦ Gerar análise aprofundada</button><button class='ptBtn soft' id='jrPDF' type='button'>↓ Exportar PDF executivo</button><p id='jrStatus' role='status' aria-live='polite'></p><div id='jrThinking' class='jrThinking' role='status' aria-live='polite' hidden><div class='jrThinkingTop'><span class='jrOrb' aria-hidden='true'><span></span></span><div><strong>JARVIS em análise</strong><p id='jrThinkingText'>Preparando a leitura das informações disponíveis…</p></div></div><div class='jrThinkingTrack'><span class='jrThinkingPulse'></span></div><p class='jrThinkingHint'>Processamento pela IA. Aguarde a confirmação do parecer salvo; o tempo pode variar.</p></div></div></div>"+
  "<div class='jrReport' id='jrReport'></div>";
  detail.appendChild(panel);
@@ -287,8 +287,8 @@ function attach(args){
    if(r.error)throw r.error;
    hasSavedCV=!!r.data;
    if(!pickedNewFile)setCVStatus(r.data?"saved":"missing",r.data
-    ?"✓ Currículo ANEXADO e confirmado no Supabase · "+r.data.filename+" · "+new Date(r.data.uploaded_at).toLocaleString("pt-BR")
-    :"○ Nenhum currículo anexado a este candidato.");
+    ?"✓ Leitura do currículo SALVA no Supabase · "+r.data.filename+" · "+new Date(r.data.uploaded_at).toLocaleString("pt-BR")
+    :"○ Nenhum conteúdo de currículo salvo nesta ficha.");
   }catch(e){if(panel.isConnected&&!pickedNewFile)setCVStatus("error","! Não foi possível confirmar o currículo no Supabase.");}
  }
  async function loadInterview(){
@@ -321,7 +321,7 @@ function attach(args){
  }
  cvInput.addEventListener("change",()=>{
   pickedNewFile=!!cvInput.files?.length;
-  if(pickedNewFile)setCVStatus("draft","● Selecionado: "+cvInput.files[0].name+" · NÃO ANEXADO. Clique em Ler e anexar currículo.");
+  if(pickedNewFile)setCVStatus("draft","● Arquivo selecionado: "+cvInput.files[0].name+" · AINDA NÃO SALVO. Clique em Ler e anexar currículo.");
   else loadResume();
  });
  const hydration=Promise.all([loadResume(),loadInterview()]).finally(()=>{
@@ -342,8 +342,8 @@ function attach(args){
     throw Error("Servidor respondeu, mas não foi possível confirmar o arquivo na ficha.");
    hasSavedCV=true;pickedNewFile=false;cvInput.value="";
    if(!panel.isConnected)return;
-   setCVStatus("saved","✓ Currículo ANEXADO e confirmado no Supabase · "+check.data.filename+" · "+new Date(check.data.uploaded_at).toLocaleString("pt-BR"));
-   writeStatus("Currículo confirmado no Supabase. Gere uma nova análise para utilizá-lo.");
+   setCVStatus("saved","✓ Leitura do currículo SALVA no Supabase · "+check.data.filename+" · "+new Date(check.data.uploaded_at).toLocaleString("pt-BR"));
+   writeStatus("Texto do currículo salvo no Supabase (o arquivo original não é armazenado). Gere um novo parecer para utilizá-lo.");
   }catch(e){
    if(panel.isConnected)setCVStatus("error","! Não foi possível confirmar o anexo. Tente novamente.");
    if(panel.isConnected)writeStatus(String(e.message||e));
