@@ -70,7 +70,7 @@ $('ptDetail').innerHTML="<h3>Ficha do candidato: "+esc(c.full_name)+"</h3><p>Vag
 (a?"<div class='ptColumns'><div><h4>Dimensões · preferências relativas</h4>"+bars+
 "<p class='ptNotice'>Predominâncias: "+esc(a.result.primary)+" e "+esc(a.result.secondary)+". O ranking é ipsativo, não compara candidatos nem comprova aptidão.</p>"+
 "<button id='ptPdf' class='ptBtn soft'>Baixar relatório PDF</button></div><div><h4>Entrevista estruturada</h4>"+
-"<label>Exemplos observáveis (situação, ação e resultado)<textarea id='ptEvidence' rows='4' placeholder='Registre evidências, sem dados sensíveis de saúde, religião ou vida pessoal.'></textarea></label>"+
+"<label>Entrevista estruturada (situação, ação e resultado)<textarea id='ptEvidence' rows='6' maxlength='25000' placeholder='Registre o que o candidato relatou e o que o entrevistador observou, identificando claramente cada origem.'></textarea></label><div id='ptInterviewState' class='jrSaveState is-checking' role='status' aria-live='polite'><span class='jrStateIcon' aria-hidden='true'>◌</span><span id='ptInterviewStateText'>Verificando entrevista salva no Supabase…</span></div>"+
 "<div class='ptActions'><button id='ptSaveInterview' class='ptBtn soft'>Salvar evidência</button><button id='ptAnalyze' class='ptBtn'>Analisar com IA</button></div>"+
 "<pre id='ptAIResult' class='ptResult'>"+esc(generated||'O agente ainda não analisou esta avaliação. Ele fornece perguntas e hipóteses para revisão humana, não decisões de contratação.')+"</pre></div></div>"
 :"<p class='ptNotice'>Ainda não há avaliação comportamental para esta candidatura.</p>");
@@ -90,8 +90,23 @@ generated=r.report;$('ptAIResult').textContent=generated;msg('Parecer gerado e s
 catch(e){msg(String(e.message||e));}finally{b.disabled=false;}
 });
 $('ptSaveInterview').addEventListener('click',async()=>{
-try{const user=await auth(),notes=$('ptEvidence').value.trim();if(notes.length<10)throw Error('Informe uma evidência concreta para registrar.');
-const r=await db().from('phoenix_talent_interviews').insert({candidate_id:c.id,interviewer:user.id,notes,evidence:{method:'entrevista_estruturada'}});if(r.error)throw r.error;msg('Evidência salva na ficha.');}catch(e){msg(String(e.message||e));}
+try{
+ const user=await auth(),area=$('ptEvidence'),notes=area.value.trim();
+ if(notes.length<10)throw Error('Registre ao menos 10 caracteres com contexto profissional.');
+ const button=$('ptSaveInterview');button.disabled=true;
+ area.dataset.saveInProgress='true';
+ window.JarvisV3?.setInterviewStatus?.('saving','Salvando entrevista no Supabase…');
+ const r=await db().from('phoenix_talent_interviews')
+  .insert({candidate_id:c.id,interviewer:user.id,notes,evidence:{method:'entrevista_estruturada'}})
+  .select('id,conducted_at,notes').single();
+ if(r.error||!r.data?.id)throw r.error||Error('O Supabase não confirmou o registro.');
+ if(area.value.trim()===notes){
+  area.dataset.savedText=notes;
+  window.JarvisV3?.setInterviewStatus?.('saved','✓ Entrevista salva · '+new Date(r.data.conducted_at).toLocaleString('pt-BR'));
+ }else{window.JarvisV3?.setInterviewStatus?.('draft','Entrevista salva, mas há novas alterações não salvas.');}
+ msg('Entrevista confirmada no banco da Phoenix.');
+ }catch(e){window.JarvisV3?.setInterviewStatus?.('error','Falha ao salvar a entrevista. Tente novamente.');msg(String(e.message||e));}
+ finally{const b=$('ptSaveInterview');if(b)b.disabled=role==='viewer';const a=$('ptEvidence');if(a)delete a.dataset.saveInProgress;}
 });
 $('ptPdf').addEventListener('click',()=>{
 if(!window.jspdf?.jsPDF){msg('Biblioteca de PDF não disponível.');return;}
