@@ -1,7 +1,7 @@
 name: Validate ADM Phoenix Talent
 on:
   push:
-    branches: [main, feat/phoenix-talent-rh, feat/jarvis-executive-report-3-1]
+    branches: [main, feat/phoenix-talent-rh, feat/jarvis-executive-report-3-1, feat/jarvis-status-thinking-3-2]
   pull_request:
 jobs:
   integration:
