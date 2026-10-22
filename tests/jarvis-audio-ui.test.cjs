@@ -1,0 +1,25 @@
+const assert=require("node:assert/strict"),fs=require("node:fs"),vm=require("node:vm");
+const js=fs.readFileSync("jarvis_v3.js","utf8"),css=fs.readFileSync("jarvis_v3.css","utf8");
+new vm.Script(js,{filename:"jarvis_v3.js"});
+for(const name of ["jrAudioFile","jrAudioConsent","jrAudioUpload","jrAudioState","jrAudioData","jrVoiceMap","jrVoiceSave","jrTranscriptText","jrAudioListen","jrAudioPlayer"])
+ assert.ok(js.includes(name),"Controle ausente: "+name);
+assert.match(js,/\.storage\.from\("phoenix-talent-audio"\)/);
+assert.match(js,/\.upload\(path,file/);
+assert.match(js,/createSignedUrl\(activeAudio\.storage_path,90\)/);
+assert.match(js,/backend\("transcribe_audio"/);
+assert.match(js,/backend\("assign_audio_speakers"/);
+assert.match(js,/Object\.values\(mapping\)\.filter\(x=>x==="candidato"\)\.length!==1/);
+assert.match(js,/loadAudio\(\)/);
+assert.match(js,/audioEvidenceMarkup\(report\)/);
+assert.match(js,/gravacao_evidencias/);
+assert.match(js,/pendingAudio/);
+assert.match(js,/audioBusy/);
+assert.match(css,/jrAudioPanel/);
+assert.match(css,/jrAudioCitations/);
+assert.match(css,/jrAudioTranscript/);
+assert.doesNotMatch(js,/SUPABASE_SERVICE_ROLE_KEY|OPENAI_API_KEY|sk-proj-/);
+const w={},document={getElementById:()=>null,querySelector:()=>null,head:{appendChild(){}},createElement:()=>({})};
+vm.runInNewContext(js,{window:w,document,console,setTimeout,clearTimeout});
+const v={version:"3.5",agent:"JARVIS",sections:{resumo_executivo:"Avaliação restrita ao RH.",gravacao_evidencias:[{segmento:3,tempo:"01:43",speaker_role:"candidato",trecho:"Preciso revisar esse protocolo.",relevancia_profissional:"Registro de conferência documental."}]},requirements:{items:[]},audio_included:true,audio:{coverage_percent:100},method:{balanced:false}};
+assert.equal(w.JarvisV3.parseReport(JSON.stringify(v)).version,"3.5");
+console.log("JARVIS 3.5: interface privada de áudio, transcrição, papéis e citações validadas.");
