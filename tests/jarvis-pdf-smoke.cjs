@@ -88,3 +88,22 @@ assert.ok(all.includes('dossiê')||all.includes('JARVIS'));
 assert.ok(!all.includes('texto integral na ficha do RH'), 'Textos não podem ser cortados artificialmente.');
 assert.ok(pages.at(-1)>8,'Página final quase vazia: '+JSON.stringify(pages));
 console.log('JARVIS 3.4 evidências preservadas; páginas '+pages.length);
+
+
+const withAudio={...withRequirements,version:"3.5",audio_included:true,
+ audio:{filename:"entrevista_teste.webm",coverage_percent:100},
+ sections:{...withRequirements.sections,gravacao_evidencias:[
+  {segmento:3,tempo:"01:43",speaker_role:"candidato",trecho:"Não consegui concluir a fórmula de busca no tempo previsto.",relevancia_profissional:"Necessária confirmação em exercício padronizado.",requisito_id:"excel"}
+ ]}};
+assert.equal(agent.parseReport(JSON.stringify(withAudio)).version,"3.5");
+agent.pdfReport(
+ {full_name:"Candidato de Teste",id:"12345678-0000-0000-0000-000000000000"},
+ {title:"Backoffice / Operações"},
+ {result:{dimensions:{D:{relative_share_percent:25},I:{relative_share_percent:26.3},C:{relative_share_percent:25},S:{relative_share_percent:23.8}}}},
+ withAudio);
+const recordedText=pageText.flat().join(" ");
+assert.match(recordedText,/Não consegui concluir a fórmula de busca no tempo previsto/);
+assert.match(recordedText,/01:43/);
+assert.match(recordedText,/ENTREVISTA GRAVADA/);
+assert.ok(!recordedText.includes("texto integral na ficha do RH"));
+console.log("JARVIS 3.5 PDF: trechos reais do áudio e horários preservados.");
