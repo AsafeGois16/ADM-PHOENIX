@@ -3606,7 +3606,7 @@ body.phx-project-mode .dashboard>.container{max-width:1440px}
  const validScore=v=>(typeof v==='number'||typeof v==='string')&&String(v).trim()!==''&&Number.isFinite(Number(v))&&Number(v)>=0&&Number(v)<=100?Number(v):null;
  const currentLeads=()=>{const old=typeof todosLeads!=='undefined'&&Array.isArray(todosLeads)?todosLeads:[];const ids=new Set(old.map(l=>String(l.segmento||'').match(/PXDIAG-[A-Z0-9-]{8,64}/i)?.[0]).filter(Boolean));
   const fresh=state.v9Rows.filter(r=>!ids.has(r.submission_id)).map(r=>({__v9:true,submission:r,
-    id:'v9:'+r.submission_id,nome:r.contact?.nome||'',email:r.contact?.email||'',telefone:r.contact?.telefone||'',cnpj:r.company?.cnpj||'',
+    id:'v9:'+r.submission_id,nome:r.contact?.nome||'',empresa:r.company?.empresa||'',email:r.contact?.email||'',telefone:r.contact?.telefone||'',cnpj:r.company?.cnpj||'',
     created_at:r.created_at,origem:'Phoenix Diagnósticos',campanha:r.source?.campaign||'Phoenix Diagnósticos V9',segmento:'Diagnóstico empresarial V9'}));
   return old.concat(fresh);
  };
@@ -3843,7 +3843,7 @@ body.phx-project-mode .dashboard>.container{max-width:1440px}
      const k=leadProject(l),status=classifyStatus(l).value;
      if(type&&type!==k)return false;if(st&&st!==status)return false;
      if(!q)return true;
-     return [l.nome,l.email,l.cnpj,l.perfil,l.origem,l.campanha,l.segmento,l.interesse].some(x=>str(x).toLocaleLowerCase('pt-BR').includes(q));
+     return [l.nome,l.empresa,l.email,l.cnpj,l.perfil,l.origem,l.campanha,l.segmento,l.interesse].some(x=>str(x).toLocaleLowerCase('pt-BR').includes(q));
    }).sort((a,b)=>new Date(b.created_at||0)-new Date(a.created_at||0));
    $('phx10Count').textContent='Exibindo '+filtered.length+' de '+leads.length+' cadastros visíveis. Clique em “Ficha & PDF” para abrir o registro e consultar as informações armazenadas.';
    $('phx10Rows').innerHTML=filtered.slice(0,600).map(l=>{
