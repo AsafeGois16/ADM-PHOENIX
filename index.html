@@ -1162,7 +1162,11 @@ body.phx-project-mode .dashboard>.container{max-width:1440px}
 .phx10-ficha:not(.rosa) .phx-do-fields .phx10-pair b{font-size:.79rem;color:#173f69}
 .phx-do-note{color:#698098;font-size:.68rem;line-height:1.65;margin:12px 1px 3px}
 </style>
-<link rel="stylesheet" href="diagnosticos_v9_module.css">
+<style>
+/* Keep V9 cards in the existing Phoenix V10.2 drawer, hide legacy-only actions. */
+#v7DrawerOverlay.phx-v9-mode .v7-drawer-body > .v7-drawer-card:nth-child(n+5){display:none!important}
+#v7DrawerOverlay.phx-v9-mode .phx10-ficha{border-color:#c9d9ed!important}
+</style>
 </head>
 <body>
 <!-- Tela de Login -->
@@ -1264,23 +1268,6 @@ body.phx-project-mode .dashboard>.container{max-width:1440px}
       <tbody id="phx10Rows"><tr><td colspan="6" style="padding:30px;text-align:center;color:#73869a">Aguardando atualização...</td></tr></tbody>
     </table>
   </div>
-  <details id="phxDiagV9Box" aria-label="Phoenix Diagnósticos V9 no ADM oficial">
-    <summary><span>◈ Phoenix Diagnósticos V9 · fichas estruturadas</span><small>Módulo integrado • somente leitura</small></summary>
-    <div class="phxv9-content">
-      <p id="phxDiagV9Message" class="phxv9-hint" role="status" aria-live="polite">Consulte os diagnósticos V9 utilizando a sessão autenticada deste ADM.</p>
-      <div class="phxv9-toolbar">
-        <input id="phxDiagV9Search" type="search" placeholder="Buscar nesta página: empresa, nome, CNPJ..." aria-label="Buscar diagnósticos V9 carregados" />
-        <select id="phxDiagV9Delivery" aria-label="Filtrar status de e-mail nesta página"><option value="">Todos os status de e-mail</option><option value="sent">Enviado ao provedor</option><option value="pending_configuration">Sem configuração</option><option value="queued">Pendente</option><option value="sending">Enviando</option><option value="failed">Falha</option><option value="skipped">Sem e-mail</option></select>
-        <button type="button" id="phxDiagV9Refresh">↻ Atualizar V9</button>
-      </div>
-      <div class="phxv9-tablewrap"><table><thead><tr><th>Empresa / participante</th><th>Contato</th><th>Oportunidades</th><th>Recebido em</th><th>Relatório</th><th>Ficha</th></tr></thead>
-        <tbody id="phxDiagV9Rows"><tr><td colspan="6" class="phxv9-empty">Abra esta seção para consultar os diagnósticos.</td></tr></tbody>
-      </table></div>
-      <div class="phxv9-pager"><button type="button" id="phxDiagV9Prev">← Anterior</button><span id="phxDiagV9Count" class="phxv9-hint">Nenhum dado carregado</span><button type="button" id="phxDiagV9Next">Próximo →</button></div>
-      <section id="phxDiagV9Details" class="phxv9-detail" aria-label="Ficha do diagnóstico selecionado" hidden></section>
-      <p class="phxv9-hint">A base V9 é isolada e aparece apenas para usuários autorizados. Nenhum registro, proposta, cliente ou ficha existente é alterado por esta visualização. Os filtros pesquisam somente a página carregada.</p>
-    </div>
-  </details>
   <p class="phx10-footer">Indicadores mostram somente registros visíveis ao usuário autenticado. Cadastros antigos podem não ter todas as respostas; nessas situações o ADM não inventa score e informa a ausência no PDF.</p>
 </section>
 
@@ -2780,9 +2767,9 @@ body.phx-project-mode .dashboard>.container{max-width:1440px}
             window.open('https://wa.me/'+tel+'?text='+encodeURIComponent(buildWhatsAppMessageV7(lead)),'_blank','noopener,noreferrer');
             toastV7('WhatsApp aberto. Confirme o envio antes de registrar o contato.');
         }
-        function abrirLeadV7(key){ const l=findLeadV7(key);if(!l)return;v7SelectedLead=l;document.getElementById('v7DrawerTitle').textContent=getEmpresaLead(l)||primeiroValor(l,['nome'])||'Ficha comercial';document.getElementById('v7DrawerSubtitle').textContent=`${getTemperaturaV7(l)} • Score ${getScoreComercialV7(l)} • ${getProdutoPrincipalV7(l)}`;document.getElementById('v7LeadSummary').innerHTML=[['Contato',primeiroValor(l,['nome'])],['Cargo',getCampoSegmento(l,'Cargo')],['Porte',getNumeroVidas(l)],['Segmento',getSegmentoEmpresa(l)],['Cidade',getCampoSegmento(l,'Cidade')],['CNPJ',primeiroValor(l,['cnpj','cpf_cnpj','cpfcnpj'])],['Razão social',getCampoSegmento(l,'Razão social')],['CNAE / Atividade',[getCampoSegmento(l,'CNAE principal'),getCampoSegmento(l,'Atividade principal')].filter(Boolean).join(' • ')],['Telefone',primeiroValor(l,['telefone','whatsapp'])]].map(([k,v])=>`<div class="v7-summary-cell"><span>${esc(k)}</span><strong>${esc(v||'-')}</strong></div>`).join(''); const scores=Object.entries(getProductScoresV7(l)).sort((a,b)=>b[1]-a[1]);document.getElementById('v7LeadOpportunities').innerHTML=scores.length?scores.map(([p,s])=>`<div class="v7-opp-row"><div class="v7-opp-name">${esc(p)}</div><div class="v7-opp-score">${s}/100</div><div class="v7-opp-bar"><span style="width:${s}%"></span></div></div>`).join(''):'<div class="v7-empty">Sem scores detalhados neste cadastro.</div>';const motivo=getMotivoPrincipalV7(l),acao=getProximaAcaoV7(l);document.getElementById('v7LeadDiagnosis').innerHTML=`<strong style="color:#27425F">Principal oportunidade:</strong> ${esc(getProdutoPrincipalV7(l))}<br>${motivo?`<strong style="color:#27425F">Leitura:</strong> ${esc(motivo)}<br>`:''}<strong style="color:#27425F">Próxima ação:</strong> ${esc(acao)}`;document.getElementById('v7MessagePreview').textContent=buildWhatsAppMessageV7(l);document.getElementById('v7CrmStatus').value=getCrmStatusV7(l);document.getElementById('v7CrmOwner').value=getCrmOwnerV7(l);const follow=getCrmFollowupV7(l);document.getElementById('v7CrmFollowup').value=follow&&/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(follow)?follow.slice(0,16):'';document.getElementById('v7CrmNotes').value=getCrmNotesV7(l);renderReportV86(l);renderEligibilityV87(l);v92StartForLead(l);const overlay=document.getElementById('v7DrawerOverlay');overlay.classList.add('open');overlay.setAttribute('aria-hidden','false');document.body.style.overflow='hidden'; }
+        function abrirLeadV7(key){ const l=findLeadV7(key);if(!l)return;window.phx10Projects?.clearV9?.();document.getElementById('v7DrawerOverlay').classList.remove('phx-v9-mode');v7SelectedLead=l;document.getElementById('v7DrawerTitle').textContent=getEmpresaLead(l)||primeiroValor(l,['nome'])||'Ficha comercial';document.getElementById('v7DrawerSubtitle').textContent=`${getTemperaturaV7(l)} • Score ${getScoreComercialV7(l)} • ${getProdutoPrincipalV7(l)}`;document.getElementById('v7LeadSummary').innerHTML=[['Contato',primeiroValor(l,['nome'])],['Cargo',getCampoSegmento(l,'Cargo')],['Porte',getNumeroVidas(l)],['Segmento',getSegmentoEmpresa(l)],['Cidade',getCampoSegmento(l,'Cidade')],['CNPJ',primeiroValor(l,['cnpj','cpf_cnpj','cpfcnpj'])],['Razão social',getCampoSegmento(l,'Razão social')],['CNAE / Atividade',[getCampoSegmento(l,'CNAE principal'),getCampoSegmento(l,'Atividade principal')].filter(Boolean).join(' • ')],['Telefone',primeiroValor(l,['telefone','whatsapp'])]].map(([k,v])=>`<div class="v7-summary-cell"><span>${esc(k)}</span><strong>${esc(v||'-')}</strong></div>`).join(''); const scores=Object.entries(getProductScoresV7(l)).sort((a,b)=>b[1]-a[1]);document.getElementById('v7LeadOpportunities').innerHTML=scores.length?scores.map(([p,s])=>`<div class="v7-opp-row"><div class="v7-opp-name">${esc(p)}</div><div class="v7-opp-score">${s}/100</div><div class="v7-opp-bar"><span style="width:${s}%"></span></div></div>`).join(''):'<div class="v7-empty">Sem scores detalhados neste cadastro.</div>';const motivo=getMotivoPrincipalV7(l),acao=getProximaAcaoV7(l);document.getElementById('v7LeadDiagnosis').innerHTML=`<strong style="color:#27425F">Principal oportunidade:</strong> ${esc(getProdutoPrincipalV7(l))}<br>${motivo?`<strong style="color:#27425F">Leitura:</strong> ${esc(motivo)}<br>`:''}<strong style="color:#27425F">Próxima ação:</strong> ${esc(acao)}`;document.getElementById('v7MessagePreview').textContent=buildWhatsAppMessageV7(l);document.getElementById('v7CrmStatus').value=getCrmStatusV7(l);document.getElementById('v7CrmOwner').value=getCrmOwnerV7(l);const follow=getCrmFollowupV7(l);document.getElementById('v7CrmFollowup').value=follow&&/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(follow)?follow.slice(0,16):'';document.getElementById('v7CrmNotes').value=getCrmNotesV7(l);renderReportV86(l);renderEligibilityV87(l);v92StartForLead(l);const overlay=document.getElementById('v7DrawerOverlay');overlay.classList.add('open');overlay.setAttribute('aria-hidden','false');document.body.style.overflow='hidden'; }
         window.abrirLeadV7=abrirLeadV7;
-        function fecharLeadV7(){document.getElementById('v7DrawerOverlay').classList.remove('open');document.getElementById('v7DrawerOverlay').setAttribute('aria-hidden','true');document.body.style.overflow='';v7SelectedLead=null} window.fecharLeadV7=fecharLeadV7;
+        function fecharLeadV7(){document.getElementById('v7DrawerOverlay').classList.remove('phx-v9-mode','open');document.getElementById('v7DrawerOverlay').setAttribute('aria-hidden','true');document.body.style.overflow='';v7SelectedLead=null} window.fecharLeadV7=fecharLeadV7;
         async function salvarCrmV7(){ if(!v7SelectedLead)return; const data={status:document.getElementById('v7CrmStatus').value,owner:document.getElementById('v7CrmOwner').value.trim(),followup:document.getElementById('v7CrmFollowup').value,notes:document.getElementById('v7CrmNotes').value.trim()}; writeLocalCrmV7(v7SelectedLead,data); let seg=String(v7SelectedLead.segmento||'');seg=setCampoSegmentoV7(seg,'CRM Status',data.status);seg=setCampoSegmentoV7(seg,'Responsável CRM',data.owner);seg=setCampoSegmentoV7(seg,'Próximo retorno',data.followup);seg=setCampoSegmentoV7(seg,'Observações CRM',data.notes);seg=setCampoSegmentoV7(seg,'CRM Atualizado',new Date().toISOString());v7SelectedLead.segmento=seg; let synced=false,errMsg=''; if(sb){try{let q=null;if(v7SelectedLead.id!==undefined&&v7SelectedLead.id!==null){q=sb.from('leads').update({segmento:seg}).eq('id',v7SelectedLead.id)}else{const email=primeiroValor(v7SelectedLead,['email']);const created=v7SelectedLead.created_at;if(email&&created)q=sb.from('leads').update({segmento:seg}).eq('email',email).eq('created_at',created)}if(q){const r=await q;if(r.error)throw r.error;synced=true}else{errMsg='Registro sem identificador seguro para atualização remota.'}}catch(e){errMsg=e?.message||String(e)}} renderCommercialV7();renderizarTabela(leadsFiltrados);document.getElementById('v7SyncStatus').textContent=synced?'CRM sincronizado com o Supabase.':`CRM salvo neste navegador${errMsg?' • sincronização remota não autorizada pela política atual.':''}`;toastV7(synced?'Pipeline salvo e sincronizado.':'Pipeline salvo localmente. Para uso multiusuário, será necessário habilitar atualização segura no Supabase.',synced?'ok':'warn'); }
         window.salvarCrmV7=salvarCrmV7;
         function abrirWhatsAppV7(){v92SetChannel('whatsapp');v92OpenWhatsapp()} window.abrirWhatsAppV7=abrirWhatsAppV7;
@@ -3613,11 +3600,16 @@ body.phx-project-mode .dashboard>.container{max-width:1440px}
  'use strict';
  const $=id=>document.getElementById(id);
  const LABELS={phoenix_diagnosticos:'Phoenix Diagnósticos',outubro_rosa:'Outubro Rosa',b2b_do:'B2B · D&O',hbr_experience:'Phoenix Experience / HBR',landing_auto:'Seguro Auto',outros:'Outros cadastros'};
- const state={active:false,seq:0,lead:null,project:'',submission:null,mapa:null,dimensions:[],recommendations:[],rows:[],score:null,scoreOrigin:'',priority:'',registry:null,registryState:'',status:'',source:'',catalog:[],summary:new Map(),catalogLoaded:false,pending:false};
+ const state={active:false,seq:0,lead:null,project:'',submission:null,mapa:null,dimensions:[],recommendations:[],rows:[],score:null,scoreOrigin:'',priority:'',registry:null,registryState:'',status:'',source:'',catalog:[],summary:new Map(),catalogLoaded:false,pending:false,v9Rows:[],v9Selected:null,v9Loaded:false};
  const safe=v=>String(v==null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const str=v=>v===undefined||v===null?'':typeof v==='string'?v.trim():typeof v==='object'?JSON.stringify(v):String(v);
  const validScore=v=>(typeof v==='number'||typeof v==='string')&&String(v).trim()!==''&&Number.isFinite(Number(v))&&Number(v)>=0&&Number(v)<=100?Number(v):null;
- const currentLeads=()=>typeof todosLeads!=='undefined'&&Array.isArray(todosLeads)?todosLeads:[];
+ const currentLeads=()=>{const old=typeof todosLeads!=='undefined'&&Array.isArray(todosLeads)?todosLeads:[];const ids=new Set(old.map(l=>String(l.segmento||'').match(/PXDIAG-[A-Z0-9-]{8,64}/i)?.[0]).filter(Boolean));
+  const fresh=state.v9Rows.filter(r=>!ids.has(r.submission_id)).map(r=>({__v9:true,submission:r,
+    id:'v9:'+r.submission_id,nome:r.contact?.nome||'',empresa:r.company?.empresa||'',email:r.contact?.email||'',telefone:r.contact?.telefone||'',cnpj:r.company?.cnpj||'',
+    created_at:r.created_at,origem:'Phoenix Diagnósticos',campanha:r.source?.campaign||'Phoenix Diagnósticos V9',segmento:'Diagnóstico empresarial V9'}));
+  return old.concat(fresh);
+ };
  const client=()=>typeof sb!=='undefined'?sb:null;
  /* Prioriza diagnósticos reais sobre registros automáticos criados pelo trigger legado.
   * Não altera nem elimina dados anteriores. */
@@ -3723,7 +3715,7 @@ body.phx-project-mode .dashboard>.container{max-width:1440px}
    if(/seguro auto|landing.*auto/.test(o))return'landing_auto';
    return'outros';
  }
- function leadProject(l){return state.summary.get(String(l?.id))?.form_key||guess(l)}
+ function leadProject(l){return l?.__v9?'phoenix_diagnosticos':state.summary.get(String(l?.id))?.form_key||guess(l)}
  function scoreInText(l){
    const m=str(l?.segmento).match(/(?:^|\|\s*|\n)\s*[ÍIíi]ndice\s+Phoenix\s*:\s*(\d+(?:[.,]\d+)?)/i);
    return m?validScore(m[1].replace(',','.')):null;
@@ -3731,6 +3723,7 @@ body.phx-project-mode .dashboard>.container{max-width:1440px}
  function mapId(l){const m=str(l?.segmento).match(/Mapa Outubro Rosa ID:\s*([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/i);return m?m[1]:null}
  function legacyPriority(l){const m=str(l?.interesse).match(/(?:^|\n)Prioridade:\s*([^\n]+)/i);return m?m[1].trim():''}
  function classifyStatus(l){
+   if(l?.__v9)return{value:'completo',label:'Ficha estruturada V9'};
    const normalized=state.summary.get(String(l?.id));
    if(normalized){const hasScore=validScore(normalized.total_score)!==null;
      return {value:hasScore||normalized.status==='completo'?'completo':'parcial',label:hasScore?'Score registrado':normalized.status==='completo'?'Ficha estruturada':'Cadastro parcial'};
@@ -3754,6 +3747,91 @@ body.phx-project-mode .dashboard>.container{max-width:1440px}
    const select=$('phx10Filter');if(select){const current=select.value;const keys=new Set([...Object.keys(LABELS),...state.catalog.map(x=>x.form_key)]);
       select.innerHTML='<option value="">Todos os projetos</option>'+[...keys].map(k=>'<option value="'+safe(k)+'">'+safe(label(k))+'</option>').join('');select.value=keys.has(current)?current:'';}
  }
+
+ const V9_LABELS={saude:'Plano de Saúde',odonto:'Plano Odontológico',vida:'Seguro de Vida',empresarial:'Seguro Empresarial',equipamentos:'Seguro de Equipamentos',frota:'Seguro para Frotas',rc:'Seguro de Responsabilidade Civil',garantias:'Garantias'};
+ const V9_QUESTIONS={porte:'Porte / Nº vidas',saude:'Plano de saúde',odonto:'Plano odontológico',vida:'Seguro de vida',estrutura:'Estrutura física',empresarial:'Seguro empresarial',equipamentos:'Máquinas e equipamentos',equipProtecao:'Proteção de equipamentos',frota:'Frota',frotaProtecao:'Proteção de frota',rcExposicao:'Risco de responsabilidade civil',rcProtecao:'Proteção de responsabilidade civil',garantias:'Garantias contratuais',garantiaProtecao:'Proteção de garantias',segurosAtuais:'Seguros atuais',revisao:'Revisão de seguros'};
+ const V9_DELIVERY={sent:'Enviado ao provedor',pending_configuration:'E-mail sem configuração',queued:'Pendente',sending:'Em processamento',failed:'Falha de envio',skipped:'Sem e-mail'};
+ const v9Product=k=>V9_LABELS[k]||str(k).replace(/_/g,' ');
+ async function loadV9(){
+   const db=client();if(!db)throw Error('Conexão indisponível');
+   const user=await db.auth.getUser();if(user.error||!user.data?.user)throw Error('Faça login para consultar os diagnósticos V9');
+   const result=[];let offset=0;
+   while(offset<2000){
+     const r=await db.from('phoenix_diagnostic_submissions')
+       .select('submission_id,created_at,contact,company,answers,analysis,commercial,source,crm_status,delivery_status,delivery_attempts,delivery_sent_at')
+       .order('created_at',{ascending:false}).range(offset,offset+199);
+     if(r.error)throw r.error;
+     const batch=Array.isArray(r.data)?r.data:[];
+     result.push(...batch);if(batch.length<200)break;offset+=batch.length;
+   }
+   state.v9Rows=result;state.v9Loaded=true;return result;
+ }
+ function v9Fields(r){return [
+   ['Contato',r.contact?.nome],['Cargo',r.contact?.cargo],['Porte',r.company?.colaboradores],['Segmento',r.company?.segmento],
+   ['Cidade',r.company?.cidade],['CNPJ',r.company?.cnpj],['Razão social',r.company?.razao_social],['CNAE / Atividade',r.company?.cnae],['Telefone',r.contact?.telefone]
+ ]}
+ function v9Scores(r){return (Array.isArray(r.analysis?.assessments)?r.analysis.assessments:[])
+   .filter(x=>x&&x.status!=='inapplicable'&&validScore(x.score)!==null)
+   .sort((a,b)=>Number(b.score)-Number(a.score))}
+ function openV9(id){
+   const r=state.v9Rows.find(x=>x.submission_id===id);if(!r)return;
+   state.seq++;state.v9Selected=r;state.lead=null;state.project='phoenix_diagnosticos';
+   $('v7DrawerTitle').textContent=r.company?.empresa||'Phoenix Diagnósticos';
+   const commercialScore=validScore(r.commercial?.score);
+   $('v7DrawerSubtitle').textContent=(r.commercial?.temperature||'Novo')+' • Score '+(commercialScore===null?'não informado':commercialScore)+' • '+v9Product(r.commercial?.topKey||r.analysis?.top?.key||'Revisão consultiva');
+   $('v7LeadSummary').innerHTML=v9Fields(r).map(([k,v])=>'<div class="v7-summary-cell"><span>'+safe(k)+'</span><strong>'+safe(v||'—')+'</strong></div>').join('');
+   const scores=v9Scores(r);
+   $('v7LeadOpportunities').innerHTML=scores.length?scores.map(x=>{const n=validScore(x.score)||0;return '<div class="v7-opp-row"><div class="v7-opp-name">'+safe(v9Product(x.key))+'</div><div class="v7-opp-score">'+n+'/100</div><div class="v7-opp-bar"><span style="width:'+n+'%"></span></div></div>'}).join(''):'<div class="v7-empty">Sem oportunidades pontuadas nesta triagem.</div>';
+   $('v7LeadDiagnosis').innerHTML='<strong>Principal oportunidade:</strong> '+safe(v9Product(r.commercial?.topKey||r.analysis?.top?.key||'Revisão consultiva'))+'<br><strong>Próxima ação:</strong> '+safe(r.commercial?.nextAction||'Revisar apólices e limites atuais.')+'<br><small>Os scores representam necessidade comercial indicativa, não cobertura efetiva.</small>';
+   $('v7MessagePreview').textContent='';
+   renderV9Ficha(r);
+   const overlay=$('v7DrawerOverlay');overlay.classList.add('phx-v9-mode','open');overlay.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';
+ }
+ function renderV9Ficha(r){
+   const card=$('phxProjectFicha');card.hidden=false;card.classList.remove('rosa');
+   $('phx10FichaTitle').textContent='Phoenix Diagnósticos';
+   $('phx10FichaTag').textContent='FICHA DO PROJETO · V9';
+   $('phx10FichaSummary').textContent='Cadastro V9 estruturado • ID '+r.submission_id+' • '+(V9_DELIVERY[r.delivery_status]||'Status do e-mail não informado');
+   const idx=validScore(r.analysis?.protectionIndex),salesScore=validScore(r.commercial?.score),pairs=[
+      ['ID do diagnóstico',r.submission_id],['Empresa',r.company?.empresa],['Razão social',r.company?.razao_social],['CNPJ',r.company?.cnpj],
+      ['Contato',r.contact?.nome],['Cargo',r.contact?.cargo],['E-mail',r.contact?.email],['Telefone',r.contact?.telefone],
+      ['Cidade',r.company?.cidade],['Segmento empresa',r.company?.segmento],['Nº vidas',r.company?.colaboradores],['Faturamento',r.company?.faturamento],
+      ['CNAE',r.company?.cnae],['Score comercial',salesScore===null?'Não calculado':salesScore+'/100'],
+      ['Prioridade',r.analysis?.priority],['Temperatura lead',r.commercial?.temperature],['Status CRM',r.crm_status||'Novo'],
+      ['E-mail / relatório',V9_DELIVERY[r.delivery_status]||r.delivery_status],['Data do cadastro',date(r.created_at)]];
+   let html=idx===null?'<div class="phx10-ficha-alert">Índice de proteção não calculado nesta triagem.</div>':
+       '<div class="phx10-scorebox"><div class="num">'+idx+'/100</div><div class="desc"><b>Índice de proteção indicativo</b><div>Calculado no formulário V9; não valida cobertura contratual.</div></div></div>';
+   html+='<h4 class="phx10-subhead">Resumo do lead</h4><div class="phx10-fields">'+pairs.filter(x=>x[1]!==null&&x[1]!==undefined&&x[1]!=='').map(([k,v])=>'<div class="phx10-pair"><small>'+safe(k)+'</small><b>'+safe(v)+'</b></div>').join('')+'</div>';
+   const answers=Object.entries(r.answers||{}).filter(x=>x[1]!==undefined&&x[1]!==null&&x[1]!=='');
+   if(answers.length)html+='<h4 class="phx10-subhead">Respostas e informações do cadastro</h4><div class="phx10-fields">'+answers.map(([k,v])=>'<div class="phx10-pair"><small>'+safe(V9_QUESTIONS[k]||k)+'</small><b>'+safe(str(v).slice(0,1800))+'</b></div>').join('')+'</div>';
+   const scores=v9Scores(r);
+   if(scores.length)html+='<h4 class="phx10-subhead">Oportunidades por produto · índice de necessidade</h4>'+scores.map(x=>{const n=validScore(x.score)||0;return'<div class="phx10-dim"><div class="top"><span>'+safe(v9Product(x.key))+'</span><span>'+n+'/100</span></div><div class="track"><i style="width:'+n+'%"></i></div></div>'}).join('');
+   const recs=Array.isArray(r.analysis?.recommended)?r.analysis.recommended:[];
+   if(recs.length)html+='<h4 class="phx10-subhead">Recomendações registradas</h4>'+recs.map(x=>'<div class="phx10-rec">'+safe(v9Product(x.key))+' · '+safe(recText(x))+'</div>').join('');
+   if(r.commercial?.nextAction)html+='<h4 class="phx10-subhead">Próxima ação comercial</h4><div class="phx10-rec">'+safe(r.commercial.nextAction)+'</div>';
+   html+='<div class="phx10-ficha-alert">Diagnóstico preliminar baseado nas respostas do participante. Recomendações e índices requerem validação técnica.</div>';
+   $('phx10FichaContent').innerHTML=html;
+ }
+ async function exportV9Pdf(r){
+   const PDF=window.jspdf?.jsPDF;if(!PDF)throw Error('Biblioteca PDF não disponível');
+   const doc=new PDF({unit:'mm',format:'a4',compress:true}),left=16,navy=[17,47,83],blue=[37,104,171];let y;
+   const fmt=v=>str(v).normalize('NFKC').replace(/[\u200B-\u200D\uFEFF]/g,'').slice(0,3000);
+   function header(){doc.setFillColor(...navy);doc.rect(0,0,210,31,'F');doc.setFillColor(...blue);doc.rect(0,31,210,1.5,'F');doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(15);doc.text('PHOENIX | INTELLIGENCE',left,13);doc.setFont('helvetica','normal');doc.setFontSize(9);doc.text('Phoenix Diagnósticos · Ficha do projeto',left,23);y=42}
+   function space(h=7){if(y+h>275){doc.addPage();header()}}
+   function section(t){space(14);doc.setFont('helvetica','bold');doc.setTextColor(...navy);doc.setFontSize(10);doc.text(fmt(t).toUpperCase().slice(0,105),left,y);y+=8}
+   function row(k,v){if(v===null||v===undefined||v==='')return;space(7);doc.setFont('helvetica','bold');doc.setTextColor(...navy);doc.setFontSize(8);doc.text(fmt(k).slice(0,85),left,y);y+=5;doc.setFont('helvetica','normal');doc.setTextColor(62,82,101);for(const line of doc.splitTextToSize(fmt(v),175)){space(5);doc.text(line,left,y);y+=4.4}y+=3}
+   header();section('Identificação e rastreabilidade');
+   [['Empresa',r.company?.empresa],['Razão social',r.company?.razao_social],['CNPJ',r.company?.cnpj],['Contato',r.contact?.nome],['Cargo',r.contact?.cargo],['E-mail',r.contact?.email],['Telefone',r.contact?.telefone],['Cidade',r.company?.cidade],['Segmento',r.company?.segmento],['Colaboradores',r.company?.colaboradores],['Faturamento',r.company?.faturamento],['CNAE',r.company?.cnae],['ID diagnóstico',r.submission_id],['Cadastro',date(r.created_at)]].forEach(x=>row(...x));
+   section('Índices registrados');row('Índice de proteção indicativo',validScore(r.analysis?.protectionIndex)===null?'Não calculado':r.analysis.protectionIndex+'/100');row('Score comercial',validScore(r.commercial?.score)===null?'Não informado':r.commercial.score+'/100');
+   section('Respostas originais');Object.entries(r.answers||{}).forEach(([k,v])=>row(V9_QUESTIONS[k]||k,v));
+   section('Oportunidades por produto');v9Scores(r).forEach(x=>row(v9Product(x.key),x.score+'/100 · '+(x.reason||x.why||'')));
+   section('Recomendações');(r.analysis?.recommended||[]).forEach((x,i)=>row('Recomendação '+(i+1),v9Product(x.key)+' — '+recText(x)));
+   section('Próxima ação');row('Orientação',r.commercial?.nextAction);
+   section('Entrega do relatório');row('Status',V9_DELIVERY[r.delivery_status]||r.delivery_status);
+   section('Nota técnica');row('Finalidade','Triagem inicial com base nas informações declaradas. Não confirma cobertura de apólices nem substitui análise técnica de riscos, limites e exclusões.');
+   const pages=doc.getNumberOfPages();for(let i=1;i<=pages;i++){doc.setPage(i);doc.setDrawColor(217,225,235);doc.line(left,282,194,282);doc.setTextColor(115,129,143);doc.setFontSize(7);doc.text('Phoenix Insurance · Uso interno · Dados pessoais',left,289);doc.text(i+' / '+pages,194,289,{align:'right'})}
+   doc.save('Phoenix_Ficha_Diagnosticos_V9_'+r.submission_id+'.pdf');
+ }
  function render(){
    if(!state.active)return;
    let leads=currentLeads(),groups={};leads.forEach(l=>{let k=leadProject(l);groups[k]=(groups[k]||0)+1});
@@ -3765,7 +3843,7 @@ body.phx-project-mode .dashboard>.container{max-width:1440px}
      const k=leadProject(l),status=classifyStatus(l).value;
      if(type&&type!==k)return false;if(st&&st!==status)return false;
      if(!q)return true;
-     return [l.nome,l.email,l.cnpj,l.perfil,l.origem,l.campanha,l.segmento,l.interesse].some(x=>str(x).toLocaleLowerCase('pt-BR').includes(q));
+     return [l.nome,l.empresa,l.email,l.cnpj,l.perfil,l.origem,l.campanha,l.segmento,l.interesse].some(x=>str(x).toLocaleLowerCase('pt-BR').includes(q));
    }).sort((a,b)=>new Date(b.created_at||0)-new Date(a.created_at||0));
    $('phx10Count').textContent='Exibindo '+filtered.length+' de '+leads.length+' cadastros visíveis. Clique em “Ficha & PDF” para abrir o registro e consultar as informações armazenadas.';
    $('phx10Rows').innerHTML=filtered.slice(0,600).map(l=>{
@@ -3775,7 +3853,7 @@ body.phx-project-mode .dashboard>.container{max-width:1440px}
        '<td><strong>'+safe(l.nome||'Nome não informado')+'</strong><small class="phx10-sub">'+safe(l.email||l.telefone||'Sem contato')+'</small></td>'+
        '<td>'+safe(l.origem||'Origem não informada')+'<small class="phx10-sub">'+safe(l.campanha||'—')+'</small></td>'+
        '<td>'+safe(date(l.created_at))+'</td><td><span class="phx10-flag '+(f.value!=='completo'?'warn':'')+'">'+safe(f.label)+'</span></td>'+
-       '<td><button class="phx10-mini" data-lead="'+safe(key)+'" type="button">Ficha &amp; PDF</button></td></tr>';
+       '<td><button class="phx10-mini" '+(l.__v9?'data-v9="'+safe(l.submission.submission_id)+'"':'data-lead="'+safe(key)+'"')+' type="button">Ficha &amp; PDF</button></td></tr>';
    }).join('')||'<tr><td colspan="6" style="padding:32px;text-align:center;color:#7c8c9e">Nenhum cadastro corresponde aos filtros.</td></tr>';
    $('phx10Updated').textContent='Consulta: '+new Date().toLocaleString('pt-BR');
  }
@@ -3784,7 +3862,7 @@ body.phx-project-mode .dashboard>.container{max-width:1440px}
    try{
      const u=await client()?.auth.getUser();if(!u?.data?.user)throw Error('É necessário entrar com um perfil Phoenix autorizado.');
      if(typeof atualizarDados==='function')await atualizarDados();
-     await catalogAndSummaries();render();
+     await Promise.all([catalogAndSummaries(),loadV9().catch(e=>message('Não foi possível consultar Diagnósticos V9: '+str(e.message||e)))]);render();
    }catch(e){message('Falha na atualização: '+str(e.message||e));render()}
    finally{state.pending=false;if(btn){btn.disabled=false;btn.textContent='↻ Atualizar projetos'}}
  }
@@ -3819,7 +3897,7 @@ body.phx-project-mode .dashboard>.container{max-width:1440px}
  }).slice(0,130)}
  function recText(v){if(typeof v==='string')return v;if(v&&typeof v==='object')return [v.tema||v.label||v.titulo||'',v.descricao||v.reason||v.proxima_reflexao||v.situacao||v.action||''].filter(Boolean).join(' — ');return str(v)}
  async function load(lead){
-   if(!lead)return;const sequence=++state.seq;
+   if(!lead)return;state.v9Selected=null;$('v7DrawerOverlay')?.classList.remove('phx-v9-mode');const sequence=++state.seq;
    state.lead=lead;state.project=leadProject(lead);state.submission=null;state.mapa=null;state.dimensions=[];state.recommendations=[];state.rows=legacyRows(lead,state.project);
    state.score=null;state.scoreOrigin='';state.priority=legacyPriority(lead);state.registry=null;state.registryState='';state.status='legado';state.source='Cadastro original (leads)';
    if(state.project==='outubro_rosa'||state.project==='phoenix_diagnosticos'){
@@ -3965,6 +4043,7 @@ body.phx-project-mode .dashboard>.container{max-width:1440px}
  }
  function pdfText(v){return str(v).normalize('NFKC').replace(/[\u200B-\u200D\uFEFF]/g,'').slice(0,3500)}
  async function exportPdf(){
+   if(state.v9Selected){const b=$('phx10PdfButton');try{if(b){b.disabled=true;b.textContent='PREPARANDO PDF...'}await exportV9Pdf(state.v9Selected)}catch(e){alert('PDF indisponível: '+str(e.message||e))}finally{if(b){b.disabled=false;b.textContent='⇩ GERAR PDF DA FICHA'}}return;}
    if(!state.lead)return;
    const btn=$('phx10PdfButton');if(btn){btn.disabled=true;btn.textContent='PREPARANDO PDF...'}
    try{
@@ -4020,7 +4099,8 @@ body.phx-project-mode .dashboard>.container{max-width:1440px}
       originalSet('base');$('universalBaseView').hidden=true;$('phxProjectView').hidden=false;
       $('v7TabBase').classList.remove('active');$('phx10Tab').classList.add('active');
       document.body.classList.add('phx-project-mode');state.active=true;render();
-      if(!state.catalogLoaded)catalogAndSummaries().then(render).catch(e=>message(str(e.message||e)));
+      if(!state.catalogLoaded)Promise.all([catalogAndSummaries(),loadV9()]).then(render).catch(e=>message('Falha ao consultar o V9: '+str(e.message||e)));
+      else loadV9().then(render).catch(e=>message('Falha ao consultar o V9: '+str(e.message||e)));
    }else{
       state.active=false;$('phxProjectView').hidden=true;$('phx10Tab').classList.remove('active');document.body.classList.remove('phx-project-mode');originalSet(view);
    }
@@ -4030,19 +4110,18 @@ body.phx-project-mode .dashboard>.container{max-width:1440px}
     originalOpen(key);const lead=typeof findLeadV7==='function'?findLeadV7(key):null;
     if(lead)load(lead);
  };
- $('phx10Rows').addEventListener('click',e=>{const b=e.target.closest('button[data-lead]');if(b)window.abrirLeadV7(b.dataset.lead)});
+ $('phx10Rows').addEventListener('click',e=>{const v=e.target.closest('button[data-v9]');if(v){openV9(v.dataset.v9);return}const b=e.target.closest('button[data-lead]');if(b)window.abrirLeadV7(b.dataset.lead)});
  $('phx10Filter').addEventListener('change',render);$('phx10Status').addEventListener('change',render);$('phx10Search').addEventListener('input',render);
  $('phx10Refresh').addEventListener('click',refresh);
  $('phx10PdfButton').addEventListener('click',exportPdf);
- $('phx10ReloadButton').addEventListener('click',()=>{if(state.lead)load(state.lead)});
+ $('phx10ReloadButton').addEventListener('click',async()=>{if(state.v9Selected){const id=state.v9Selected.submission_id;try{await loadV9();openV9(id);render()}catch(e){message('Falha ao reconsultar: '+str(e.message||e))}}else if(state.lead)load(state.lead)});
  // Central de projetos acessível a qualquer momento, sem interferir com a atualização automática do evento.
- window.phx10Projects={refresh,render,open:()=>window.setPainelV7('projects')};
+ window.phx10Projects={refresh,render,clearV9:()=>{state.v9Selected=null},open:()=>window.setPainelV7('projects')};
 })();
 </script>
 
 <script defer src="nov-blue-adm.js"></script>
 <script src="talent_module.js"></script>
 <script src="jarvis_v3.js"></script>
-<script defer src="diagnosticos_v9_module.js"></script>
 </body>
 </html>
