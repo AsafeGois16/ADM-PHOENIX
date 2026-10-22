@@ -111,3 +111,40 @@
 #ptView #jrHumanSave{grid-column:1/-1;justify-self:start}
 #ptView #jrHumanFeedback{font-size:12px;color:#245986;line-height:1.5}
 @media(max-width:770px){#ptView .jrRequirementList,#ptView .jrHumanGrid{grid-template-columns:minmax(0,1fr)}#ptView .jrRequireTop{padding:18px}#ptView .jrHumanReview{padding:16px}}
+
+
+/* JARVIS 3.5 | Arquivo de entrevista e evidências de áudio */
+#ptView .jrAudioPanel{background:linear-gradient(148deg,#f9fcff,#fff);border:1px solid #cedeed;border-radius:16px;box-shadow:0 10px 25px rgba(15,43,77,.06);padding:22px;margin:19px 0}
+#ptView .jrAudioHead{display:flex;justify-content:space-between;align-items:flex-start;gap:18px}
+#ptView .jrAudioHead h4{font-size:20px;color:#163c60;margin:8px 0}
+#ptView .jrAudioHead p{font-size:12.5px;line-height:1.6;color:#58718d;max-width:730px}
+#ptView .jrAudioSymbol{display:grid;place-items:center;border:1px solid #e4c891;background:#fff9ed;color:#a07127;border-radius:100%;width:46px;height:46px;font-size:24px;flex:none}
+#ptView .jrAudioUpload{display:flex;gap:13px;align-items:flex-start;flex-wrap:wrap;margin:15px 0}
+#ptView #jrAudioFile{flex:1 1 270px;min-width:0;max-width:100%;padding:10px;color:#254d72;border:1px solid #cddced;border-radius:11px;background:white}
+#ptView .jrConsent{display:flex;align-items:flex-start;gap:9px;font-weight:500;font-size:12px;line-height:1.65;color:#436078;width:100%}
+#ptView .jrConsent input{margin-top:3px;flex:none}
+#ptView .jrAudioData{border-top:1px solid #e0e8f2;padding-top:15px}
+#ptView .jrAudioData[hidden]{display:none!important}
+#ptView .jrAudioMeta{font-size:12px;font-weight:650;color:#236c55;margin-bottom:12px}
+#ptView #jrAudioPlayer{display:block;width:100%;max-width:640px;margin:12px 0}
+#ptView #jrAudioPlayer[hidden]{display:none!important}
+#ptView #jrVoiceMap{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding:16px 0}
+#ptView #jrVoiceMap h5,#ptView #jrVoiceMap p{grid-column:1/-1;margin:0}
+#ptView #jrVoiceMap h5{font-size:14px;color:#204b77}
+#ptView #jrVoiceMap p{font-size:12px;color:#607c95}
+#ptView #jrVoiceMap label{display:flex;flex-direction:column;gap:5px;color:#2a506f;font-size:12px;font-weight:670}
+#ptView #jrVoiceMap select{padding:10px;border:1px solid #d1e0ee;border-radius:8px;background:white;color:#254d70}
+#ptView .jrAudioTranscript{margin:15px 0;background:#f3f8fd;border:1px solid #d8e7f3;border-radius:10px;padding:14px}
+#ptView .jrAudioTranscript summary{cursor:pointer;font-weight:700;color:#285781;font-size:13px}
+#ptView .jrAudioTranscript pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:310px;overflow:auto;font-family:inherit;font-size:12px;color:#3a5673;line-height:1.75}
+#ptView .jrAudioDisclaimer{font-size:11px;line-height:1.65;color:#72869c;margin:12px 0 0}
+#ptView .jrAudioCitations{margin:15px 0 22px;padding:19px 21px;border:1px solid #d9e3ec;border-radius:14px}
+#ptView .jrAudioCitations h4{color:#194d79;font-size:16px}
+#ptView .jrAudioCitations>p{font-size:12px;line-height:1.6;color:#617a92}
+#ptView .jrQuoteList{display:grid;gap:10px;margin-top:13px}
+#ptView .jrQuoteList article{padding:13px;border-left:3px solid #b28a45;background:#f8fafc;border-radius:5px}
+#ptView .jrQuoteList span{font-size:11px;letter-spacing:.3px;font-weight:760;color:#285b84}
+#ptView .jrQuoteList blockquote{margin:8px 0;color:#203a56;font-size:13px;font-weight:600;line-height:1.7}
+#ptView .jrQuoteList article p{color:#668099;font-size:11.5px;line-height:1.6;margin:5px 0}
+#ptView .jrAudioWarning{padding:10px 12px;border:1px solid #e7c99b;background:#fff8ec;border-radius:9px;color:#8f611d!important}
+@media(max-width:720px){#ptView .jrAudioPanel{padding:15px}#ptView #jrVoiceMap{grid-template-columns:1fr}}
