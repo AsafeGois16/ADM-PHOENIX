@@ -69,8 +69,8 @@ async function getResumeText(file){
 }
 function parseReport(input){
  if(!input)return null;
- if(typeof input==="object"&&["3.0","3.1","3.2","3.3"].includes(input.version))return input;
- try{const report=JSON.parse(input);if(["3.0","3.1","3.2","3.3"].includes(report?.version)&&report.sections)return report;}catch{}
+ if(typeof input==="object"&&["3.0","3.1","3.2","3.3","3.5"].includes(input.version))return input;
+ try{const report=JSON.parse(input);if(["3.0","3.1","3.2","3.3","3.5"].includes(report?.version)&&report.sections)return report;}catch{}
  return {legacy:String(input)};
 }
 function sectionMarkup(k,val){
@@ -289,9 +289,19 @@ function attach(args){
  const existing=$("jrPanel");if(existing)existing.remove();
  const panel=document.createElement("section");panel.id="jrPanel";panel.className="jrPanel";
  panel.dataset.candidate=c.id;
- panel.innerHTML="<div class='jrHero'><div class='jrAvatar'><img src='jarvis_avatar.jpg' alt='Identidade visual do agente JARVIS' onerror='this.style.display=\"none\"'></div><div class='jrHeroCopy'><span class='jrKicker'>PHOENIX TALENT · INTELIGÊNCIA DE RECRUTAMENTO</span><h3>JARVIS <small>3.3</small></h3><p>Leitura crítica do DISC, currículo e entrevista · análise para revisão humana</p></div><div class='jrOnline'>AGENTE DE APOIO AO RH</div></div>"+
+ panel.innerHTML="<div class='jrHero'><div class='jrAvatar'><img src='jarvis_avatar.jpg' alt='Identidade visual do agente JARVIS' onerror='this.style.display=\"none\"'></div><div class='jrHeroCopy'><span class='jrKicker'>PHOENIX TALENT · INTELIGÊNCIA DE RECRUTAMENTO</span><h3>JARVIS <small>3.5</small></h3><p>Leitura crítica do DISC, currículo e entrevista · análise para revisão humana</p></div><div class='jrOnline'>AGENTE DE APOIO AO RH</div></div>"+
  "<div class='jrControlGrid'><div class='jrDoc'><h4>Currículo profissional</h4><p>PDF, DOCX ou TXT, até 5 MB. A leitura local extrai texto; somente esse texto é salvo no RH, não o arquivo original.</p><input id='jrCVFile' type='file' accept='.pdf,.docx,.txt,application/pdf,text/plain,application/vnd.openxmlformats-officedocument.wordprocessingml.document' aria-label='Selecionar currículo do candidato'><p class='jrSaveState is-checking' id='jrCVStatus' role='status' aria-live='polite'>◌ Verificando currículo salvo no Supabase…</p><button class='ptBtn soft' id='jrCVSave' type='button'>Ler e anexar currículo</button></div>"+
  "<div class='jrRun'><h4>Parecer JARVIS</h4><p>Combine preferências declaradas, histórico profissional e evidências da entrevista. Sem notas de aprovação ou rejeição.</p><button class='ptBtn jrPrimary' id='jrGenerate' type='button'>✦ Gerar análise aprofundada</button><button class='ptBtn soft' id='jrPDF' type='button'>↓ Exportar PDF executivo</button><p id='jrStatus' role='status' aria-live='polite'></p><div id='jrThinking' class='jrThinking' role='status' aria-live='polite' hidden><div class='jrThinkingTop'><span class='jrOrb' aria-hidden='true'><span></span></span><div><strong>JARVIS em análise</strong><p id='jrThinkingText'>Preparando a leitura das informações disponíveis…</p></div></div><div class='jrThinkingTrack'><span class='jrThinkingPulse'></span></div><p class='jrThinkingHint'>Processamento pela IA. Aguarde a confirmação do parecer salvo; o tempo pode variar.</p></div></div></div>"+
+ "<section class='jrAudioPanel' id='jrAudioPanel'><div class='jrAudioHead'><div><span class='jrKicker'>FONTE ADICIONAL · ENTREVISTA GRAVADA</span><h4>Áudio e transcrição da entrevista</h4><p>Anexe MP3, M4A, WAV, WEBM ou MP4 (até 24 MB). O áudio ficará privado no RH. O processamento usa o serviço de transcrição da OpenAI.</p></div><span class='jrAudioSymbol' aria-hidden='true'>♫</span></div>"+
+ "<div class='jrAudioUpload'><input id='jrAudioFile' type='file' accept='.mp3,.m4a,.wav,.webm,.mp4,.mpeg,.mpga,audio/*' aria-label='Arquivo de áudio gravado da entrevista'>"+
+ "<label class='jrConsent'><input id='jrAudioConsent' type='checkbox'> Confirmo que os participantes foram informados e que a gravação pode ser armazenada e transcrita para esta avaliação.</label>"+
+ "<button id='jrAudioUpload' class='ptBtn jrPrimary' type='button'>Anexar e transcrever entrevista</button></div>"+
+ "<p id='jrAudioState' class='jrSaveState is-checking' role='status' aria-live='polite'>◌ Consultando gravações desta ficha…</p>"+
+ "<div id='jrAudioData' class='jrAudioData' hidden><div class='jrAudioMeta' id='jrAudioMeta'></div>"+
+ "<button id='jrAudioListen' class='ptBtn soft' type='button'>▶ Ouvir gravação privada</button><audio id='jrAudioPlayer' controls preload='none' hidden></audio>"+
+ "<div id='jrVoiceMap'></div><button id='jrVoiceSave' class='ptBtn soft' type='button' hidden>Confirmar quem está falando</button>"+
+ "<details class='jrAudioTranscript'><summary>Ver transcrição da entrevista</summary><pre id='jrTranscriptText'></pre></details></div>"+
+ "<p class='jrAudioDisclaimer'>A transcrição pode conter erros. Identifique manualmente as vozes antes de gerar o parecer. O JARVIS analisa o conteúdo profissional, não a voz, o sotaque ou a emoção.</p></section>"+
  "<div class='jrReport' id='jrReport'></div>"+
  "<section class='jrHumanReview' id='jrHumanReview'><span class='jrKicker'>REGISTRO HUMANO · RH PHOENIX</span><h4>Conclusão do recrutador sobre a vaga</h4>"+
  "<p class='jrHumanNote'>O parecer do JARVIS não determina aprovação ou rejeição. Somente o responsável pela seleção pode registrar a conclusão com justificativa profissional.</p>"+
