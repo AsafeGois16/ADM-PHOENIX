@@ -314,6 +314,118 @@ function attach(args){
  detail.classList.add("jrReady");
  let activeReport=parseReport(previous?.report_text||"");
  let currentReview=null;
+
+ let activeAudio=null,pendingAudio=null,audioBusy=false;
+ const audioFile=$("jrAudioFile"),audioConsent=$("jrAudioConsent"),audioUpload=$("jrAudioUpload"),
+       audioState=$("jrAudioState"),audioData=$("jrAudioData"),audioMeta=$("jrAudioMeta"),
+       audioMap=$("jrVoiceMap"),audioSave=$("jrVoiceSave"),audioTranscript=$("jrTranscriptText");
+ const audioNotice=(state,text)=>{if(!audioState)return;audioState.className="jrSaveState is-"+state;audioState.textContent=text;};
+ const audioRoleNames={candidato:"Candidato",entrevistador:"Entrevistador",outra_pessoa:"Outra pessoa",nao_identificado:"Não identificado"};
+ const timeFmt=s=>{const n=Math.max(0,Math.floor(Number(s)||0));return String(Math.floor(n/60)).padStart(2,"0")+":"+String(n%60).padStart(2,"0")};
+ function audioSpeakers(){
+  return [...new Set((Array.isArray(activeAudio?.segments)?activeAudio.segments:[]).map(seg=>String(seg.speaker||"indefinido")))];
+ }
+ function showAudio(){
+  if(!panel.isConnected)return;
+  audioData.hidden=!activeAudio;
+  if(!activeAudio){
+   audioNotice("missing","○ Nenhuma entrevista gravada transcrita nesta ficha.");
+   return;
+  }
+  audioMeta.textContent="✓ Transcrição confirmada no Supabase · "+activeAudio.original_filename+" · "+new Date(activeAudio.transcribed_at).toLocaleString("pt-BR");
+  audioTranscript.textContent=(Array.isArray(activeAudio.segments)&&activeAudio.segments.length?
+    activeAudio.segments.map(x=>"["+timeFmt(x.start)+"] "+String(activeAudio.speaker_roles?.[x.speaker]||x.speaker||"voz")+": "+String(x.text||"")).join("\n"):
+    String(activeAudio.transcription||""));
+  const speakers=audioSpeakers(),stored=activeAudio.speaker_roles||{};
+  if(speakers.length){
+   audioMap.innerHTML="<h5>Identificação das vozes · conferir manualmente</h5>"+
+    "<p>Escolha quem fala em cada voz. O sistema não deduz a identidade de uma pessoa pelo áudio.</p>"+
+    speakers.map(sp=>"<label>"+htmlSafe(sp)+"<select class='jrSpeakerSelect' data-speaker='"+htmlSafe(sp)+"'>"+
+      "<option value=''>Selecione a pessoa</option>"+
+      Object.entries(audioRoleNames).map(([code,label])=>"<option value='"+code+"'"+(stored[sp]===code?" selected":"")+">"+label+"</option>").join("")+
+     "</select></label>").join("");
+   audioSave.hidden=role==="viewer";
+  }else{audioMap.innerHTML="<p>Áudio transcrito sem identificação de vozes. Confirme manualmente o conteúdo; o JARVIS não atribuirá frases a uma pessoa específica.</p>";audioSave.hidden=true;}
+  const assigned=Object.values(stored).includes("candidato");
+  audioNotice(assigned||!speakers.length?"saved":"draft",
+    assigned?"✓ Entrevista gravada transcrita e vozes confirmadas. Pronta para uma nova análise.":
+    speakers.length?"● Transcrição salva; identifique a voz do candidato antes de gerar a análise.":
+    "✓ Entrevista transcrita, sem separação de vozes. Revise o texto antes de analisar.");
+ }
+ async function loadAudio(){
+  try{
+   const {data,error}=await db().from("phoenix_talent_audio_transcripts")
+    .select("id,storage_path,original_filename,transcription,segments,speaker_roles,transcribed_at")
+    .eq("candidate_id",c.id).order("transcribed_at",{ascending:false}).limit(1).maybeSingle();
+   if(error)throw error;
+   if(!panel.isConnected)return;
+   activeAudio=data||null;showAudio();
+  }catch(e){if(panel.isConnected)audioNotice("error","! Não foi possível confirmar o áudio no Supabase: "+String(e.message||e));}
+ }
+ audioFile.addEventListener("change",()=>{
+  pendingAudio=null;
+  if(audioFile.files?.[0])audioNotice("draft","● Arquivo escolhido: "+audioFile.files[0].name+" · ainda não anexado.");
+  else showAudio();
+ });
+ audioUpload.disabled=role==="viewer";
+ audioUpload.addEventListener("click",async()=>{
+  const file=audioFile.files?.[0];if(!file&&!pendingAudio)return audioNotice("error","Escolha a gravação de uma entrevista.");
+  if(!audioConsent.checked)return audioNotice("error","Confirme a autorização e ciência dos participantes da gravação.");
+  const ext=(file?.name||pendingAudio?.filename||"").split(".").pop().toLowerCase();
+  const types={mp3:"audio/mpeg",m4a:"audio/mp4",wav:"audio/wav",webm:"audio/webm",mp4:"video/mp4",mpeg:"audio/mpeg",mpga:"audio/mpeg"};
+  if(!types[ext])return audioNotice("error","Use MP3, M4A, WAV, WEBM, MPEG ou MP4.");
+  if(file&&(file.size>25165824||file.size<1024))return audioNotice("error","O áudio deve ter entre 1 KB e 24 MB.");
+  audioBusy=true;audioUpload.disabled=true;
+  try{
+   if(!pendingAudio){
+    const uuid=crypto.randomUUID();
+    const path=c.id+"/"+uuid+"."+ext;
+    audioNotice("saving","◌ Enviando gravação à área privada do Supabase…");
+    const r=await db().storage.from("phoenix-talent-audio")
+     .upload(path,file,{upsert:false,contentType:types[ext]});
+    if(r.error)throw r.error;
+    pendingAudio={path,filename:file.name};
+   }
+   audioNotice("saving","◌ JARVIS transcrevendo a gravação e identificando as vozes…");
+   const response=await backend("transcribe_audio",{candidate_id:c.id,storage_path:pendingAudio.path,
+     original_filename:pendingAudio.filename,consent_confirmed:true});
+   if(!response?.ok)throw Error("O servidor não confirmou a transcrição.");
+   pendingAudio=null;audioFile.value="";await loadAudio();
+   if(panel.isConnected)audioNotice("draft","✓ Gravação transcrita e salva. Confira quem é o candidato em cada voz antes de analisar.");
+  }catch(e){
+   if(panel.isConnected)audioNotice("error","! "+String(e.message||e)+(pendingAudio?" O arquivo foi enviado; clique novamente para retomar a transcrição.":""));
+  }finally{audioBusy=false;if(panel.isConnected)audioUpload.disabled=role==="viewer";}
+ });
+ audioSave.addEventListener("click",async()=>{
+  if(!activeAudio)return;
+  const mapping={};
+  for(const select of audioMap.querySelectorAll("select[data-speaker]")){
+   if(!select.value)return audioNotice("error","Identifique todas as vozes, mesmo que alguma seja 'não identificada'.");
+   mapping[select.dataset.speaker]=select.value;
+  }
+  if(Object.values(mapping).filter(x=>x==="candidato").length!==1)
+   return audioNotice("error","Marque exatamente uma voz como candidato.");
+  audioSave.disabled=true;audioNotice("saving","◌ Confirmando atribuição de vozes no Supabase…");
+  try{
+   const r=await backend("assign_audio_speakers",{candidate_id:c.id,recording_id:activeAudio.id,speaker_roles:mapping});
+   if(!r?.ok)throw Error("O Supabase não confirmou as atribuições.");
+   await loadAudio();
+  }catch(e){audioNotice("error","! Não foi possível salvar as vozes: "+String(e.message||e));}
+  finally{if(panel.isConnected)audioSave.disabled=role==="viewer";}
+ });
+ $("jrAudioListen").addEventListener("click",async()=>{
+  if(!activeAudio)return;
+  const button=$("jrAudioListen"),player=$("jrAudioPlayer");
+  button.disabled=true;audioNotice("saving","◌ Gerando acesso privado e temporário à gravação…");
+  try{
+   const r=await db().storage.from("phoenix-talent-audio").createSignedUrl(activeAudio.storage_path,90);
+   if(r.error||!r.data?.signedUrl)throw r.error||Error("Não foi possível reproduzir o arquivo.");
+   player.src=r.data.signedUrl;player.hidden=false;player.load();
+   audioNotice("saved","✓ Reprodução liberada por acesso privado temporário (90 segundos).");
+  }catch(e){audioNotice("error","! Não foi possível abrir o áudio: "+String(e.message||e));}
+  finally{button.disabled=false;}
+ });
+
  const humanStatus=$("jrHumanStatus"),humanReason=$("jrHumanRationale"),humanSave=$("jrHumanSave"),humanLatest=$("jrHumanLatest"),humanFeedback=$("jrHumanFeedback");
  const humanWrite=msg=>{if(humanFeedback)humanFeedback.textContent=msg;};
  function showHumanReview(data){
@@ -412,7 +524,7 @@ function attach(args){
   if(pickedNewFile)setCVStatus("draft","● Arquivo selecionado: "+cvInput.files[0].name+" · AINDA NÃO SALVO. Clique em Ler e anexar currículo.");
   else loadResume();
  });
- const hydration=Promise.all([loadResume(),loadInterview()]).finally(()=>{
+ const hydration=Promise.all([loadResume(),loadInterview(),loadAudio()]).finally(()=>{
   if(panel.isConnected)$("jrGenerate").disabled=noEdit||!a;
  });
  $("jrCVSave").addEventListener("click",async()=>{
@@ -449,6 +561,13 @@ function attach(args){
   if(pickedNewFile){
    writeStatus("O currículo foi selecionado, mas ainda não anexado. Clique em Ler e anexar currículo.");
    cvInput.focus();return;
+  }
+  if(audioBusy||pendingAudio){
+   writeStatus("Conclua a transcrição do áudio antes de analisar.");return;
+  }
+  if(activeAudio&&audioSpeakers().length&&!Object.values(activeAudio.speaker_roles||{}).includes("candidato")){
+   writeStatus("Identifique a voz do candidato na gravação e salve antes de gerar o parecer.");
+   audioMap.scrollIntoView({behavior:"smooth",block:"nearest"});return;
   }
   const btn=$("jrGenerate");btn.disabled=true;btn.textContent="JARVIS analisando…";
   const busy=$("jrThinking"),label=$("jrThinkingText");
