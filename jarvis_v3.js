@@ -69,8 +69,8 @@ async function getResumeText(file){
 }
 function parseReport(input){
  if(!input)return null;
- if(typeof input==="object"&&["3.0","3.1","3.2","3.3"].includes(input.version))return input;
- try{const report=JSON.parse(input);if(["3.0","3.1","3.2","3.3"].includes(report?.version)&&report.sections)return report;}catch{}
+ if(typeof input==="object"&&["3.0","3.1","3.2","3.3","3.5"].includes(input.version))return input;
+ try{const report=JSON.parse(input);if(["3.0","3.1","3.2","3.3","3.5"].includes(report?.version)&&report.sections)return report;}catch{}
  return {legacy:String(input)};
 }
 function sectionMarkup(k,val){
@@ -115,9 +115,20 @@ function requirementsMarkup(report){
  "</div></section>";
 }
 
+function audioEvidenceMarkup(report){
+ const citations=Array.isArray(report?.sections?.gravacao_evidencias)?report.sections.gravacao_evidencias:[];
+ if(!report?.audio_included&&!citations.length)return "";
+ const audio=report.audio||{},pct=Number(audio.coverage_percent);
+ const notice=Number.isFinite(pct)&&pct<100?"<p class='jrAudioWarning'>A análise utilizou somente "+pct+"% do contexto textual disponível; confira a transcrição integral antes de concluir.</p>":"";
+ return "<section class='jrAudioCitations'><div class='jrSectionHead'><h4>Trechos da gravação utilizados na análise</h4></div>"+
+ "<p>As citações abaixo foram recuperadas da transcrição arquivada, com marcações de tempo. O reconhecimento automático de fala pode conter erros.</p>"+notice+
+ (citations.length?"<div class='jrQuoteList'>"+citations.map(x=>"<article><span>["+htmlSafe(x.tempo||"--:--")+"] · "+htmlSafe(({candidato:"Candidato",entrevistador:"Entrevistador",outra_pessoa:"Outra pessoa",nao_identificado:"Voz não identificada"})[x.speaker_role]||"Voz não identificada")+"</span>"+
+ "<blockquote>"+htmlSafe(x.trecho||"")+"</blockquote><p>"+htmlSafe(x.relevancia_profissional||"")+"</p></article>").join("")+"</div>":
+ "<p>Nenhum trecho específico foi citado no parecer. Consulte a transcrição para conferir o contexto.</p>")+"</section>";
+}
 function reportMarkup(report){
  if(!report)return "<div class='jrEmpty'>Nenhuma análise gerada nesta ficha. Anexe o currículo, registre a entrevista e solicite uma leitura do JARVIS.</div>";
- if(report.legacy)return "<div class='jrLegacy'><b>Parecer da versão anterior</b><p>Gere uma nova análise JARVIS 3.3 para visualizar o relatório com fontes discriminadas e revisão humana.</p><pre>"+htmlSafe(report.legacy)+"</pre></div>";
+ if(report.legacy)return "<div class='jrLegacy'><b>Parecer da versão anterior</b><p>Gere uma nova análise JARVIS 3.5 para visualizar o relatório com fontes discriminadas e revisão humana.</p><pre>"+htmlSafe(report.legacy)+"</pre></div>";
  const obj=report.sections||{},meta=report.method||{};
  const spread=Number(meta.spread_pp);
  const balanced=meta.balanced===true&&Number.isFinite(spread);
@@ -127,6 +138,7 @@ function reportMarkup(report){
  "<div><b>OBSERVAÇÕES DO ENTREVISTADOR</b><span>"+(report?.sources?.interviewer_observations?.length?"Exercício registrado, sujeito a conferência":"Não registradas; sem comprovação independente")+"</span></div></div>";
  return "<div class='jrReportTop'><span>RELATÓRIO EXECUTIVO · JARVIS "+htmlSafe(report.version||"")+"</span><span>"+(report.resume_included?"Currículo incorporado":"Sem currículo")+"</span></div>"+
   requirementsMarkup(report)+
+  audioEvidenceMarkup(report)+
   (balanced?"<p class='jrBalance'>Distribuição DISC relativamente equilibrada: diferença máxima de "+spread.toFixed(1)+" pontos percentuais. Não há predominância expressiva."+(meta.first_choice_tied?" As primeiras escolhas estão empatadas entre D, I, S e C.":"")+(ties?" Há empate entre os fatores da segunda maior pontuação.":"")+"</p>":"")+
   basis+
   Object.keys(labels).map(k=>sectionMarkup(k,obj[k])).join("");
@@ -270,6 +282,17 @@ function pdfReport(candidate,job,assessment,report,review){
    "Não consta verificação independente nesta ficha; registros de exercícios descritos pelo entrevistador não equivalem a auditoria dos resultados.");
  textSection("METODOLOGIA E LIMITES",sections.nota_metodologica||
   "O DISC autoral apresenta somente preferências relativas e não valida aptidão profissional. Este documento organiza evidências para análise humana.");
+ if(Array.isArray(sections.gravacao_evidencias)&&sections.gravacao_evidencias.length){
+  heading("ENTREVISTA GRAVADA / TRECHOS COM TEMPO");
+  for(const ev of sections.gravacao_evidencias){
+   if(!ev||typeof ev!=="object")continue;
+   item("["+docText(ev.tempo||"")+"] "+docText(({candidato:"Candidato",entrevistador:"Entrevistador",outra_pessoa:"Outra pessoa",nao_identificado:"Voz não identificada"})[ev.speaker_role]||"Voz não identificada")+
+        " — "+docText(ev.trecho||"")+" · "+docText(ev.relevancia_profissional||""),{size:8.5});
+  }
+ }
+ if(report.audio_included&&Number(report.audio?.coverage_percent)<100){
+  para("ATENÇÃO: A análise utilizou apenas "+Number(report.audio.coverage_percent)+"% do contexto textual da gravação. Confira o restante antes de concluir.",{size:8.4,bold:true,color:muted});
+ }
  list("PONTOS DE ATENÇÃO / O QUE INVESTIGAR",sections.pontos_a_confirmar);
  list("PERGUNTAS PARA ENTREVISTA DE APROFUNDAMENTO",sections.perguntas_entrevista);
  textSection("EXERCÍCIO PRÁTICO RECOMENDADO",sections.exercicio_pratico);
@@ -289,9 +312,19 @@ function attach(args){
  const existing=$("jrPanel");if(existing)existing.remove();
  const panel=document.createElement("section");panel.id="jrPanel";panel.className="jrPanel";
  panel.dataset.candidate=c.id;
- panel.innerHTML="<div class='jrHero'><div class='jrAvatar'><img src='jarvis_avatar.jpg' alt='Identidade visual do agente JARVIS' onerror='this.style.display=\"none\"'></div><div class='jrHeroCopy'><span class='jrKicker'>PHOENIX TALENT · INTELIGÊNCIA DE RECRUTAMENTO</span><h3>JARVIS <small>3.3</small></h3><p>Leitura crítica do DISC, currículo e entrevista · análise para revisão humana</p></div><div class='jrOnline'>AGENTE DE APOIO AO RH</div></div>"+
+ panel.innerHTML="<div class='jrHero'><div class='jrAvatar'><img src='jarvis_avatar.jpg' alt='Identidade visual do agente JARVIS' onerror='this.style.display=\"none\"'></div><div class='jrHeroCopy'><span class='jrKicker'>PHOENIX TALENT · INTELIGÊNCIA DE RECRUTAMENTO</span><h3>JARVIS <small>3.5</small></h3><p>Leitura crítica do DISC, currículo e entrevista · análise para revisão humana</p></div><div class='jrOnline'>AGENTE DE APOIO AO RH</div></div>"+
  "<div class='jrControlGrid'><div class='jrDoc'><h4>Currículo profissional</h4><p>PDF, DOCX ou TXT, até 5 MB. A leitura local extrai texto; somente esse texto é salvo no RH, não o arquivo original.</p><input id='jrCVFile' type='file' accept='.pdf,.docx,.txt,application/pdf,text/plain,application/vnd.openxmlformats-officedocument.wordprocessingml.document' aria-label='Selecionar currículo do candidato'><p class='jrSaveState is-checking' id='jrCVStatus' role='status' aria-live='polite'>◌ Verificando currículo salvo no Supabase…</p><button class='ptBtn soft' id='jrCVSave' type='button'>Ler e anexar currículo</button></div>"+
  "<div class='jrRun'><h4>Parecer JARVIS</h4><p>Combine preferências declaradas, histórico profissional e evidências da entrevista. Sem notas de aprovação ou rejeição.</p><button class='ptBtn jrPrimary' id='jrGenerate' type='button'>✦ Gerar análise aprofundada</button><button class='ptBtn soft' id='jrPDF' type='button'>↓ Exportar PDF executivo</button><p id='jrStatus' role='status' aria-live='polite'></p><div id='jrThinking' class='jrThinking' role='status' aria-live='polite' hidden><div class='jrThinkingTop'><span class='jrOrb' aria-hidden='true'><span></span></span><div><strong>JARVIS em análise</strong><p id='jrThinkingText'>Preparando a leitura das informações disponíveis…</p></div></div><div class='jrThinkingTrack'><span class='jrThinkingPulse'></span></div><p class='jrThinkingHint'>Processamento pela IA. Aguarde a confirmação do parecer salvo; o tempo pode variar.</p></div></div></div>"+
+ "<section class='jrAudioPanel' id='jrAudioPanel'><div class='jrAudioHead'><div><span class='jrKicker'>FONTE ADICIONAL · ENTREVISTA GRAVADA</span><h4>Áudio e transcrição da entrevista</h4><p>Anexe MP3, M4A, WAV, WEBM ou MP4 (até 24 MB). O áudio ficará privado no RH. O processamento usa o serviço de transcrição da OpenAI.</p></div><span class='jrAudioSymbol' aria-hidden='true'>♫</span></div>"+
+ "<div class='jrAudioUpload'><input id='jrAudioFile' type='file' accept='.mp3,.m4a,.wav,.webm,.mp4,.mpeg,.mpga,audio/*' aria-label='Arquivo de áudio gravado da entrevista'>"+
+ "<label class='jrConsent'><input id='jrAudioConsent' type='checkbox'> Confirmo que os participantes foram informados e que a gravação pode ser armazenada e transcrita para esta avaliação.</label>"+
+ "<button id='jrAudioUpload' class='ptBtn jrPrimary' type='button'>Anexar e transcrever entrevista</button></div>"+
+ "<p id='jrAudioState' class='jrSaveState is-checking' role='status' aria-live='polite'>◌ Consultando gravações desta ficha…</p>"+
+ "<div id='jrAudioData' class='jrAudioData' hidden><div class='jrAudioMeta' id='jrAudioMeta'></div>"+
+ "<button id='jrAudioListen' class='ptBtn soft' type='button'>▶ Ouvir gravação privada</button><audio id='jrAudioPlayer' controls preload='none' hidden></audio>"+
+ "<div id='jrVoiceMap'></div><button id='jrVoiceSave' class='ptBtn soft' type='button' hidden>Confirmar quem está falando</button>"+
+ "<details class='jrAudioTranscript'><summary>Ver transcrição da entrevista</summary><pre id='jrTranscriptText'></pre></details></div>"+
+ "<p class='jrAudioDisclaimer'>A transcrição pode conter erros. Identifique manualmente as vozes antes de gerar o parecer. O JARVIS analisa o conteúdo profissional, não a voz, o sotaque ou a emoção.</p></section>"+
  "<div class='jrReport' id='jrReport'></div>"+
  "<section class='jrHumanReview' id='jrHumanReview'><span class='jrKicker'>REGISTRO HUMANO · RH PHOENIX</span><h4>Conclusão do recrutador sobre a vaga</h4>"+
  "<p class='jrHumanNote'>O parecer do JARVIS não determina aprovação ou rejeição. Somente o responsável pela seleção pode registrar a conclusão com justificativa profissional.</p>"+
@@ -304,6 +337,118 @@ function attach(args){
  detail.classList.add("jrReady");
  let activeReport=parseReport(previous?.report_text||"");
  let currentReview=null;
+
+ let activeAudio=null,pendingAudio=null,audioBusy=false;
+ const audioFile=$("jrAudioFile"),audioConsent=$("jrAudioConsent"),audioUpload=$("jrAudioUpload"),
+       audioState=$("jrAudioState"),audioData=$("jrAudioData"),audioMeta=$("jrAudioMeta"),
+       audioMap=$("jrVoiceMap"),audioSave=$("jrVoiceSave"),audioTranscript=$("jrTranscriptText");
+ const audioNotice=(state,text)=>{if(!audioState)return;audioState.className="jrSaveState is-"+state;audioState.textContent=text;};
+ const audioRoleNames={candidato:"Candidato",entrevistador:"Entrevistador",outra_pessoa:"Outra pessoa",nao_identificado:"Não identificado"};
+ const timeFmt=s=>{const n=Math.max(0,Math.floor(Number(s)||0));return String(Math.floor(n/60)).padStart(2,"0")+":"+String(n%60).padStart(2,"0")};
+ function audioSpeakers(){
+  return [...new Set((Array.isArray(activeAudio?.segments)?activeAudio.segments:[]).map(seg=>String(seg.speaker||"indefinido")))];
+ }
+ function showAudio(){
+  if(!panel.isConnected)return;
+  audioData.hidden=!activeAudio;
+  if(!activeAudio){
+   audioNotice("missing","○ Nenhuma entrevista gravada transcrita nesta ficha.");
+   return;
+  }
+  audioMeta.textContent="✓ Transcrição confirmada no Supabase · "+activeAudio.original_filename+" · "+new Date(activeAudio.transcribed_at).toLocaleString("pt-BR");
+  audioTranscript.textContent=(Array.isArray(activeAudio.segments)&&activeAudio.segments.length?
+    activeAudio.segments.map(x=>"["+timeFmt(x.start)+"] "+String(activeAudio.speaker_roles?.[x.speaker]||x.speaker||"voz")+": "+String(x.text||"")).join("\n"):
+    String(activeAudio.transcription||""));
+  const speakers=audioSpeakers(),stored=activeAudio.speaker_roles||{};
+  if(speakers.length){
+   audioMap.innerHTML="<h5>Identificação das vozes · conferir manualmente</h5>"+
+    "<p>Escolha quem fala em cada voz. O sistema não deduz a identidade de uma pessoa pelo áudio.</p>"+
+    speakers.map(sp=>"<label>"+htmlSafe(sp)+"<select class='jrSpeakerSelect' data-speaker='"+htmlSafe(sp)+"'>"+
+      "<option value=''>Selecione a pessoa</option>"+
+      Object.entries(audioRoleNames).map(([code,label])=>"<option value='"+code+"'"+(stored[sp]===code?" selected":"")+">"+label+"</option>").join("")+
+     "</select></label>").join("");
+   audioSave.hidden=role==="viewer";
+  }else{audioMap.innerHTML="<p>Áudio transcrito sem identificação de vozes. Confirme manualmente o conteúdo; o JARVIS não atribuirá frases a uma pessoa específica.</p>";audioSave.hidden=true;}
+  const assigned=Object.values(stored).includes("candidato");
+  audioNotice(assigned||!speakers.length?"saved":"draft",
+    assigned?"✓ Entrevista gravada transcrita e vozes confirmadas. Pronta para uma nova análise.":
+    speakers.length?"● Transcrição salva; identifique a voz do candidato antes de gerar a análise.":
+    "✓ Entrevista transcrita, sem separação de vozes. Revise o texto antes de analisar.");
+ }
+ async function loadAudio(){
+  try{
+   const {data,error}=await db().from("phoenix_talent_audio_transcripts")
+    .select("id,storage_path,original_filename,transcription,segments,speaker_roles,transcribed_at")
+    .eq("candidate_id",c.id).order("transcribed_at",{ascending:false}).limit(1).maybeSingle();
+   if(error)throw error;
+   if(!panel.isConnected)return;
+   activeAudio=data||null;showAudio();
+  }catch(e){if(panel.isConnected)audioNotice("error","! Não foi possível confirmar o áudio no Supabase: "+String(e.message||e));}
+ }
+ audioFile.addEventListener("change",()=>{
+  pendingAudio=null;
+  if(audioFile.files?.[0])audioNotice("draft","● Arquivo escolhido: "+audioFile.files[0].name+" · ainda não anexado.");
+  else showAudio();
+ });
+ audioUpload.disabled=role==="viewer";
+ audioUpload.addEventListener("click",async()=>{
+  const file=audioFile.files?.[0];if(!file&&!pendingAudio)return audioNotice("error","Escolha a gravação de uma entrevista.");
+  if(!audioConsent.checked)return audioNotice("error","Confirme a autorização e ciência dos participantes da gravação.");
+  const ext=(file?.name||pendingAudio?.filename||"").split(".").pop().toLowerCase();
+  const types={mp3:"audio/mpeg",m4a:"audio/mp4",wav:"audio/wav",webm:"audio/webm",mp4:"video/mp4",mpeg:"audio/mpeg",mpga:"audio/mpeg"};
+  if(!types[ext])return audioNotice("error","Use MP3, M4A, WAV, WEBM, MPEG ou MP4.");
+  if(file&&(file.size>25165824||file.size<1024))return audioNotice("error","O áudio deve ter entre 1 KB e 24 MB.");
+  audioBusy=true;audioUpload.disabled=true;
+  try{
+   if(!pendingAudio){
+    const uuid=crypto.randomUUID();
+    const path=c.id+"/"+uuid+"."+ext;
+    audioNotice("saving","◌ Enviando gravação à área privada do Supabase…");
+    const r=await db().storage.from("phoenix-talent-audio")
+     .upload(path,file,{upsert:false,contentType:types[ext]});
+    if(r.error)throw r.error;
+    pendingAudio={path,filename:file.name};
+   }
+   audioNotice("saving","◌ JARVIS transcrevendo a gravação e identificando as vozes…");
+   const response=await backend("transcribe_audio",{candidate_id:c.id,storage_path:pendingAudio.path,
+     original_filename:pendingAudio.filename,consent_confirmed:true});
+   if(!response?.ok)throw Error("O servidor não confirmou a transcrição.");
+   pendingAudio=null;audioFile.value="";await loadAudio();
+   if(panel.isConnected)audioNotice("draft","✓ Gravação transcrita e salva. Confira quem é o candidato em cada voz antes de analisar.");
+  }catch(e){
+   if(panel.isConnected)audioNotice("error","! "+String(e.message||e)+(pendingAudio?" O arquivo foi enviado; clique novamente para retomar a transcrição.":""));
+  }finally{audioBusy=false;if(panel.isConnected)audioUpload.disabled=role==="viewer";}
+ });
+ audioSave.addEventListener("click",async()=>{
+  if(!activeAudio)return;
+  const mapping={};
+  for(const select of audioMap.querySelectorAll("select[data-speaker]")){
+   if(!select.value)return audioNotice("error","Identifique todas as vozes, mesmo que alguma seja 'não identificada'.");
+   mapping[select.dataset.speaker]=select.value;
+  }
+  if(Object.values(mapping).filter(x=>x==="candidato").length!==1)
+   return audioNotice("error","Marque exatamente uma voz como candidato.");
+  audioSave.disabled=true;audioNotice("saving","◌ Confirmando atribuição de vozes no Supabase…");
+  try{
+   const r=await backend("assign_audio_speakers",{candidate_id:c.id,recording_id:activeAudio.id,speaker_roles:mapping});
+   if(!r?.ok)throw Error("O Supabase não confirmou as atribuições.");
+   await loadAudio();
+  }catch(e){audioNotice("error","! Não foi possível salvar as vozes: "+String(e.message||e));}
+  finally{if(panel.isConnected)audioSave.disabled=role==="viewer";}
+ });
+ $("jrAudioListen").addEventListener("click",async()=>{
+  if(!activeAudio)return;
+  const button=$("jrAudioListen"),player=$("jrAudioPlayer");
+  button.disabled=true;audioNotice("saving","◌ Gerando acesso privado e temporário à gravação…");
+  try{
+   const r=await db().storage.from("phoenix-talent-audio").createSignedUrl(activeAudio.storage_path,90);
+   if(r.error||!r.data?.signedUrl)throw r.error||Error("Não foi possível reproduzir o arquivo.");
+   player.src=r.data.signedUrl;player.hidden=false;player.load();
+   audioNotice("saved","✓ Reprodução liberada por acesso privado temporário (90 segundos).");
+  }catch(e){audioNotice("error","! Não foi possível abrir o áudio: "+String(e.message||e));}
+  finally{button.disabled=false;}
+ });
+
  const humanStatus=$("jrHumanStatus"),humanReason=$("jrHumanRationale"),humanSave=$("jrHumanSave"),humanLatest=$("jrHumanLatest"),humanFeedback=$("jrHumanFeedback");
  const humanWrite=msg=>{if(humanFeedback)humanFeedback.textContent=msg;};
  function showHumanReview(data){
@@ -402,7 +547,7 @@ function attach(args){
   if(pickedNewFile)setCVStatus("draft","● Arquivo selecionado: "+cvInput.files[0].name+" · AINDA NÃO SALVO. Clique em Ler e anexar currículo.");
   else loadResume();
  });
- const hydration=Promise.all([loadResume(),loadInterview()]).finally(()=>{
+ const hydration=Promise.all([loadResume(),loadInterview(),loadAudio()]).finally(()=>{
   if(panel.isConnected)$("jrGenerate").disabled=noEdit||!a;
  });
  $("jrCVSave").addEventListener("click",async()=>{
@@ -439,6 +584,13 @@ function attach(args){
   if(pickedNewFile){
    writeStatus("O currículo foi selecionado, mas ainda não anexado. Clique em Ler e anexar currículo.");
    cvInput.focus();return;
+  }
+  if(audioBusy||pendingAudio){
+   writeStatus("Conclua a transcrição do áudio antes de analisar.");return;
+  }
+  if(activeAudio&&audioSpeakers().length&&!Object.values(activeAudio.speaker_roles||{}).includes("candidato")){
+   writeStatus("Identifique a voz do candidato na gravação e salve antes de gerar o parecer.");
+   audioMap.scrollIntoView({behavior:"smooth",block:"nearest"});return;
   }
   const btn=$("jrGenerate");btn.disabled=true;btn.textContent="JARVIS analisando…";
   const busy=$("jrThinking"),label=$("jrThinkingText");
