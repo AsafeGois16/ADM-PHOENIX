@@ -1162,6 +1162,7 @@ body.phx-project-mode .dashboard>.container{max-width:1440px}
 .phx10-ficha:not(.rosa) .phx-do-fields .phx10-pair b{font-size:.79rem;color:#173f69}
 .phx-do-note{color:#698098;font-size:.68rem;line-height:1.65;margin:12px 1px 3px}
 </style>
+<link rel="stylesheet" href="diagnosticos_v9_module.css">
 </head>
 <body>
 <!-- Tela de Login -->
@@ -1263,6 +1264,23 @@ body.phx-project-mode .dashboard>.container{max-width:1440px}
       <tbody id="phx10Rows"><tr><td colspan="6" style="padding:30px;text-align:center;color:#73869a">Aguardando atualização...</td></tr></tbody>
     </table>
   </div>
+  <details id="phxDiagV9Box" aria-label="Phoenix Diagnósticos V9 no ADM oficial">
+    <summary><span>◈ Phoenix Diagnósticos V9 · fichas estruturadas</span><small>Módulo integrado • somente leitura</small></summary>
+    <div class="phxv9-content">
+      <p id="phxDiagV9Message" class="phxv9-hint" role="status" aria-live="polite">Consulte os diagnósticos V9 utilizando a sessão autenticada deste ADM.</p>
+      <div class="phxv9-toolbar">
+        <input id="phxDiagV9Search" type="search" placeholder="Buscar nesta página: empresa, nome, CNPJ..." aria-label="Buscar diagnósticos V9 carregados" />
+        <select id="phxDiagV9Delivery" aria-label="Filtrar status de e-mail nesta página"><option value="">Todos os status de e-mail</option><option value="sent">Enviado ao provedor</option><option value="pending_configuration">Sem configuração</option><option value="queued">Pendente</option><option value="sending">Enviando</option><option value="failed">Falha</option><option value="skipped">Sem e-mail</option></select>
+        <button type="button" id="phxDiagV9Refresh">↻ Atualizar V9</button>
+      </div>
+      <div class="phxv9-tablewrap"><table><thead><tr><th>Empresa / participante</th><th>Contato</th><th>Oportunidades</th><th>Recebido em</th><th>Relatório</th><th>Ficha</th></tr></thead>
+        <tbody id="phxDiagV9Rows"><tr><td colspan="6" class="phxv9-empty">Abra esta seção para consultar os diagnósticos.</td></tr></tbody>
+      </table></div>
+      <div class="phxv9-pager"><button type="button" id="phxDiagV9Prev">← Anterior</button><span id="phxDiagV9Count" class="phxv9-hint">Nenhum dado carregado</span><button type="button" id="phxDiagV9Next">Próximo →</button></div>
+      <section id="phxDiagV9Details" class="phxv9-detail" aria-label="Ficha do diagnóstico selecionado" hidden></section>
+      <p class="phxv9-hint">A base V9 é isolada e aparece apenas para usuários autorizados. Nenhum registro, proposta, cliente ou ficha existente é alterado por esta visualização. Os filtros pesquisam somente a página carregada.</p>
+    </div>
+  </details>
   <p class="phx10-footer">Indicadores mostram somente registros visíveis ao usuário autenticado. Cadastros antigos podem não ter todas as respostas; nessas situações o ADM não inventa score e informa a ausência no PDF.</p>
 </section>
 
@@ -4025,5 +4043,6 @@ body.phx-project-mode .dashboard>.container{max-width:1440px}
 <script defer src="nov-blue-adm.js"></script>
 <script src="talent_module.js"></script>
 <script src="jarvis_v3.js"></script>
+<script defer src="diagnosticos_v9_module.js"></script>
 </body>
 </html>
