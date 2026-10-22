@@ -115,9 +115,20 @@ function requirementsMarkup(report){
  "</div></section>";
 }
 
+function audioEvidenceMarkup(report){
+ const citations=Array.isArray(report?.sections?.gravacao_evidencias)?report.sections.gravacao_evidencias:[];
+ if(!report?.audio_included&&!citations.length)return "";
+ const audio=report.audio||{},pct=Number(audio.coverage_percent);
+ const notice=Number.isFinite(pct)&&pct<100?"<p class='jrAudioWarning'>A análise utilizou somente "+pct+"% do contexto textual disponível; confira a transcrição integral antes de concluir.</p>":"";
+ return "<section class='jrAudioCitations'><div class='jrSectionHead'><h4>Trechos da gravação utilizados na análise</h4></div>"+
+ "<p>As citações abaixo foram recuperadas da transcrição arquivada, com marcações de tempo. O reconhecimento automático de fala pode conter erros.</p>"+notice+
+ (citations.length?"<div class='jrQuoteList'>"+citations.map(x=>"<article><span>["+htmlSafe(x.tempo||"--:--")+"] · "+htmlSafe(({candidato:"Candidato",entrevistador:"Entrevistador",outra_pessoa:"Outra pessoa",nao_identificado:"Voz não identificada"})[x.speaker_role]||"Voz não identificada")+"</span>"+
+ "<blockquote>"+htmlSafe(x.trecho||"")+"</blockquote><p>"+htmlSafe(x.relevancia_profissional||"")+"</p></article>").join("")+"</div>":
+ "<p>Nenhum trecho específico foi citado no parecer. Consulte a transcrição para conferir o contexto.</p>")+"</section>";
+}
 function reportMarkup(report){
  if(!report)return "<div class='jrEmpty'>Nenhuma análise gerada nesta ficha. Anexe o currículo, registre a entrevista e solicite uma leitura do JARVIS.</div>";
- if(report.legacy)return "<div class='jrLegacy'><b>Parecer da versão anterior</b><p>Gere uma nova análise JARVIS 3.3 para visualizar o relatório com fontes discriminadas e revisão humana.</p><pre>"+htmlSafe(report.legacy)+"</pre></div>";
+ if(report.legacy)return "<div class='jrLegacy'><b>Parecer da versão anterior</b><p>Gere uma nova análise JARVIS 3.5 para visualizar o relatório com fontes discriminadas e revisão humana.</p><pre>"+htmlSafe(report.legacy)+"</pre></div>";
  const obj=report.sections||{},meta=report.method||{};
  const spread=Number(meta.spread_pp);
  const balanced=meta.balanced===true&&Number.isFinite(spread);
@@ -127,6 +138,7 @@ function reportMarkup(report){
  "<div><b>OBSERVAÇÕES DO ENTREVISTADOR</b><span>"+(report?.sources?.interviewer_observations?.length?"Exercício registrado, sujeito a conferência":"Não registradas; sem comprovação independente")+"</span></div></div>";
  return "<div class='jrReportTop'><span>RELATÓRIO EXECUTIVO · JARVIS "+htmlSafe(report.version||"")+"</span><span>"+(report.resume_included?"Currículo incorporado":"Sem currículo")+"</span></div>"+
   requirementsMarkup(report)+
+  audioEvidenceMarkup(report)+
   (balanced?"<p class='jrBalance'>Distribuição DISC relativamente equilibrada: diferença máxima de "+spread.toFixed(1)+" pontos percentuais. Não há predominância expressiva."+(meta.first_choice_tied?" As primeiras escolhas estão empatadas entre D, I, S e C.":"")+(ties?" Há empate entre os fatores da segunda maior pontuação.":"")+"</p>":"")+
   basis+
   Object.keys(labels).map(k=>sectionMarkup(k,obj[k])).join("");
@@ -270,6 +282,17 @@ function pdfReport(candidate,job,assessment,report,review){
    "Não consta verificação independente nesta ficha; registros de exercícios descritos pelo entrevistador não equivalem a auditoria dos resultados.");
  textSection("METODOLOGIA E LIMITES",sections.nota_metodologica||
   "O DISC autoral apresenta somente preferências relativas e não valida aptidão profissional. Este documento organiza evidências para análise humana.");
+ if(Array.isArray(sections.gravacao_evidencias)&&sections.gravacao_evidencias.length){
+  heading("ENTREVISTA GRAVADA / TRECHOS COM TEMPO");
+  for(const ev of sections.gravacao_evidencias){
+   if(!ev||typeof ev!=="object")continue;
+   item("["+docText(ev.tempo||"")+"] "+docText(({candidato:"Candidato",entrevistador:"Entrevistador",outra_pessoa:"Outra pessoa",nao_identificado:"Voz não identificada"})[ev.speaker_role]||"Voz não identificada")+
+        " — "+docText(ev.trecho||"")+" · "+docText(ev.relevancia_profissional||""),{size:8.5});
+  }
+ }
+ if(report.audio_included&&Number(report.audio?.coverage_percent)<100){
+  para("ATENÇÃO: A análise utilizou apenas "+Number(report.audio.coverage_percent)+"% do contexto textual da gravação. Confira o restante antes de concluir.",{size:8.4,bold:true,color:muted});
+ }
  list("PONTOS DE ATENÇÃO / O QUE INVESTIGAR",sections.pontos_a_confirmar);
  list("PERGUNTAS PARA ENTREVISTA DE APROFUNDAMENTO",sections.perguntas_entrevista);
  textSection("EXERCÍCIO PRÁTICO RECOMENDADO",sections.exercicio_pratico);
