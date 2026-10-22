@@ -20,6 +20,7 @@
     return Number.isFinite(d.getTime())?d.toLocaleString('pt-BR',{dateStyle:'short',timeStyle:'short'}):'—';
   };
   const prod={saude:'Plano de Saúde',odonto:'Plano Odontológico',vida:'Seguro de Vida',empresarial:'Seguro Empresarial',equipamentos:'Seguro de Equipamentos',frota:'Seguro para Frotas',rc:'Responsabilidade Civil',garantias:'Garantias'};
+  const questionTitles={porte:'Número de colaboradores',saude:'Plano de saúde',odonto:'Plano odontológico',vida:'Seguro de vida',estrutura:'Estrutura física',empresarial:'Seguro empresarial atual',equipamentos:'Máquinas e equipamentos',equipProtecao:'Proteção dos equipamentos',frota:'Utilização de frota',frotaProtecao:'Seguro da frota',rcExposicao:'Exposição a terceiros',rcProtecao:'Responsabilidade civil atual',garantias:'Contratos com garantias',garantiaProtecao:'Proteção de garantias',segurosAtuais:'Proteções atuais',revisao:'Última revisão da carteira'};
   const status={pending_configuration:'E-mail sem configuração',queued:'Aguardando envio',sending:'Enviando e-mail',sent:'Enviado ao provedor',failed:'Falha no e-mail',skipped:'Sem e-mail'};
   const notice=(message,error=false)=>{
     const box=$('phxDiagV9Message');
@@ -72,6 +73,19 @@
       recsBox.append(card);
     }
     target.append(recsBox);
+    const answerBox=el('div','phxv9-recs');
+    answerBox.append(el('h5','','Respostas registradas'));
+    const responseGrid=el('div','phxv9-pairs');
+    for(const [key,value] of Object.entries(record.answers||{})){
+      if(!Object.prototype.hasOwnProperty.call(questionTitles,key))continue;
+      const pair=el('div','phxv9-pair');
+      const readable=value==='sim'?'Sim':value==='nao'?'Não':value==='nao-sei'?'Não sei':clean(value);
+      pair.append(el('small','',questionTitles[key]),el('strong','',readable));
+      responseGrid.append(pair);
+    }
+    if(!responseGrid.children.length)answerBox.append(el('p','phxv9-muted','Nenhuma resposta individual registrada.'));
+    else answerBox.append(responseGrid);
+    target.append(answerBox);
     const next=el('div','phxv9-next');
     next.append(el('strong','','Próxima ação comercial sugerida'),el('p','',record.commercial?.nextAction||'Solicitar análise consultiva das apólices.'));
     target.append(next);
@@ -129,7 +143,7 @@
       if(auth.error||!auth.data?.user)throw Error('Faça login no ADM oficial para visualizar os diagnósticos.');
       const from=page*state.pageSize,to=from+state.pageSize-1;
       const {data,error,count}=await db.from('phoenix_diagnostic_submissions')
-        .select('submission_id,created_at,contact,company,analysis,commercial,crm_status,delivery_status,delivery_attempts,delivery_last_error,delivery_sent_at',{count:'exact'})
+        .select('submission_id,created_at,contact,company,answers,analysis,commercial,crm_status,delivery_status,delivery_attempts,delivery_last_error,delivery_sent_at',{count:'exact'})
         .order('created_at',{ascending:false}).range(from,to);
       if(error)throw error;
       state.rows=Array.isArray(data)?data:[];
