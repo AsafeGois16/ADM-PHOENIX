@@ -1,0 +1,42 @@
+
+/* Apenas a seção Phoenix Diagnósticos V9 dentro do ADM oficial. */
+#phxDiagV9Box{margin:26px 0 30px;border:1px solid #d7e3f0;background:#fff;border-radius:18px;box-shadow:0 12px 30px rgba(11,42,82,.045);overflow:hidden}
+#phxDiagV9Box summary{cursor:pointer;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;padding:19px 23px;font-weight:850;color:#173c68;background:#f6faff;list-style:none}
+#phxDiagV9Box summary::-webkit-details-marker{display:none}
+#phxDiagV9Box summary small{font-size:.74rem;font-weight:550;color:#637990}
+#phxDiagV9Box .phxv9-content{padding:18px 22px 24px}
+#phxDiagV9Box .phxv9-toolbar{display:flex;flex-wrap:wrap;gap:10px;margin:10px 0 14px;align-items:center}
+#phxDiagV9Box input,#phxDiagV9Box select{border:1px solid #d8e3ee;border-radius:10px;padding:11px 12px;min-height:42px;font-size:.84rem;background:white;color:#294562}
+#phxDiagV9Search{flex:2;min-width:190px}
+#phxDiagV9Delivery{flex:1;min-width:170px}
+#phxDiagV9Box button{border:0;border-radius:10px;background:#145daf;color:#fff;padding:11px 15px;font-weight:800;font-size:.78rem;cursor:pointer;min-height:42px}
+#phxDiagV9Box button:disabled{opacity:.45;cursor:not-allowed}
+#phxDiagV9Box .phxv9-hint{font-size:.72rem;color:#637990;line-height:1.6}
+#phxDiagV9Box .phxv9-hint.error{color:#a72c2c}
+#phxDiagV9Box .phxv9-tablewrap{max-width:100%;overflow:auto;border-radius:12px;border:1px solid #e4eaf1}
+#phxDiagV9Box table{width:100%;min-width:870px;border-collapse:collapse}
+#phxDiagV9Box th{text-align:left;background:#f4f8fc;padding:13px;font-size:.68rem;color:#6a8097;letter-spacing:.04em;text-transform:uppercase}
+#phxDiagV9Box td{padding:12px 13px;border-top:1px solid #edf1f6;vertical-align:middle;font-size:.75rem;color:#344e69;overflow-wrap:anywhere}
+#phxDiagV9Box td strong{display:block;font-size:.8rem;color:#203e60}
+#phxDiagV9Box .phxv9-muted{display:block;font-size:.71rem;color:#788aa0;line-height:1.45}
+#phxDiagV9Box .phxv9-pill{display:inline-block;background:#edf5fc;color:#235c8d;border-radius:999px;font-size:.69rem;padding:6px 9px;font-weight:750}
+#phxDiagV9Box .phxv9-empty{text-align:center;padding:25px;color:#75869a}
+#phxDiagV9Box .phxv9-pager{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:13px}
+#phxDiagV9Box .phxv9-pager button{background:#eaf2fb;color:#164d85}
+#phxDiagV9Box .phxv9-detail{margin-top:20px;border:1px solid #dce7f2;background:#fafcff;border-radius:14px;padding:18px}
+#phxDiagV9Box .phxv9-detail[hidden]{display:none}
+#phxDiagV9Box .phxv9-detail-head{display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:16px}
+#phxDiagV9Box .phxv9-detail h4{color:#123b68;margin:4px 0;font-size:1.12rem}
+#phxDiagV9Box .phxv9-detail p{font-size:.75rem;line-height:1.55;margin:6px 0;color:#536a81}
+#phxDiagV9Box .phxv9-pairs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+#phxDiagV9Box .phxv9-pair{background:#fff;border:1px solid #e1ebf4;border-radius:9px;padding:10px;min-width:0;overflow-wrap:anywhere}
+#phxDiagV9Box .phxv9-pair small{display:block;color:#778ba1;font-size:.67rem;margin-bottom:5px}
+#phxDiagV9Box .phxv9-pair strong{color:#2b4765;font-size:.75rem;line-height:1.4}
+#phxDiagV9Box .phxv9-recs{margin-top:17px}
+#phxDiagV9Box .phxv9-recs h5{color:#1a426b;font-size:.83rem;margin:0 0 9px}
+#phxDiagV9Box .phxv9-reco{background:#fff;border-left:3px solid #d2a65c;margin:7px 0;padding:11px 13px;border-radius:0 9px 9px 0}
+#phxDiagV9Box .phxv9-reco strong{color:#254767;font-size:.78rem}
+#phxDiagV9Box .phxv9-next{background:#edf5fc;padding:14px;border-radius:11px;margin-top:13px}
+#phxDiagV9Box .phxv9-next strong{font-size:.8rem;color:#1b4976}
+@media(max-width:720px){#phxDiagV9Box summary{padding:15px}#phxDiagV9Box .phxv9-content{padding:12px}#phxDiagV9Box .phxv9-pairs{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:390px){#phxDiagV9Box .phxv9-pairs{grid-template-columns:1fr}}
